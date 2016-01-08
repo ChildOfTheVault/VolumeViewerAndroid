@@ -156,10 +156,6 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
     program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
 
-    //int test = program->attributeLocation("passIt");
-    //program->enableAttributeArray(test);
-    //program->setAttributeBuffer(test, GL_FLOAT, offset, 3, sizeof(VertexData));
-
     // Offset for texture coordinate
     offset += sizeof(QVector3D);
 
