@@ -268,6 +268,14 @@ void MainWidget::paintGL()
     geometries->drawCubeGeometry(&program);
 
     QWidget *frame = new QWidget(this);
-    frame->setGeometry(0, 0, 200, 200);
-    frame->setStyleSheet("background-image: url(:/tap.png)");
+    frame->setGeometry(20, 0, 200, 200);
+    frame->setStyleSheet("background-image: url(:/vv_arrow_left.png)");
+
+    QWidget *frame2 = new QWidget(this);
+    frame2->setGeometry(20, 220, 200, 200);
+    frame2->setStyleSheet("background-image: url(:/vv_arrow_right.png)");
+
+    QWidget *frame3 = new QWidget(this);
+    frame3->setGeometry(20, 440, 200, 200);
+    frame3->setStyleSheet("background-image: url(:/vv_settings.png)");
 }
