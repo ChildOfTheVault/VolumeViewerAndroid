@@ -1,0 +1,27 @@
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes.dex : \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistro$Stub$Proxy.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistro$Stub.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistro.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistroCallback$Stub$Proxy.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistroCallback$Stub.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/kde/necessitas/ministro/IMinistroCallback.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$1.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$2.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$3$1$1.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$3$1.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$3.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$4.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$5.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity$6.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtActivity.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtApplication$InvokeResult.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/qt5/android/bindings/QtApplication.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/BuildConfig.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R$array.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R$attr.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R$drawable.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R$layout.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R$string.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/classes/org/qtproject/volumeviewer/R.class \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/dexedLibs/QtAndroid-bundled-df5f9607f454e9f16689a9b626b90c89.jar \
+/Users/Austin/Desktop/Capstone/VolumeViewerAndroid/VolumeViewerAndroid/build-cube-Android_for_armeabi_GCC_4_9_Qt_5_5_1-Debug/android-build/bin/dexedLibs/QtAndroidAccessibility-bundled-94a60fd5645c0f16b5e9f07c23dc7088.jar \
