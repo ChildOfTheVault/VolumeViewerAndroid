@@ -8,4 +8,7 @@ The current team members are:
 -Jaden Diefenbaugh
 
 
-Once the project is further into development, instructions will be placed here on how to set up the project.
+Once the project is further into development, further instructions will be placed here on how to set up the project.
+For now: Open project with Qt Creator, clean, build, then deploy.
+
+Make sure to remove java debug folder before committing.
