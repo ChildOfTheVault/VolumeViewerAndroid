@@ -39,6 +39,7 @@
 ****************************************************************************/
 
 #include "mainwidget.h"
+#include "mainsettings.h"
 #include <QMouseEvent>
 #include <math.h>
 
@@ -98,6 +99,8 @@ void MainWidget::mousePressEvent(QMouseEvent *event)
         else {
             passIt = 1.0;
         }
+        MainSettings ms(this);
+        ms.show();
     update();
     }
 
