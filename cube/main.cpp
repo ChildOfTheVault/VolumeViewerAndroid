@@ -1,4 +1,7 @@
+
 /****************************************************************************
+** This section details the Qt licensce required from starting 
+** a basic template Qt application. 
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
@@ -54,12 +57,15 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(format);
     app.setApplicationName("VolumeViewer");
     app.setApplicationVersion("1.0");
+    
 #ifndef QT_NO_OPENGL
     MainWidget widget;
     widget.show();
+
 #else
     QLabel note("OpenGL Support required");
     note.show();
+
 #endif
     return app.exec();
 }

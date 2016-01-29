@@ -3,7 +3,8 @@ QT       += core gui widgets
 TARGET = VolumeViewer
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    mainsettings.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -11,7 +12,8 @@ SOURCES += \
 
 HEADERS += \
     mainwidget.h \
-    geometryengine.h
+    geometryengine.h \
+    mainsettings.h
 
 RESOURCES += \
     shaders.qrc \
