@@ -76,6 +76,8 @@ void MainWidget::mousePressEvent(QMouseEvent *event)
     update();
     }
     else if (event->x() < 220 && (event->y() > 440 && event->y() <= 660)) {
+        //MainWidget widget;
+        //widget.show();
         //qDebug( "Pressed the invisi-button" );
         if (passIt == 1.0) {
             passIt = 0.0;

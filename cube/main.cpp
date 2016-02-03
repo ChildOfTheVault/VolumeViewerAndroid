@@ -59,6 +59,8 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("1.0");
     
 #ifndef QT_NO_OPENGL
+
+
     MainWidget widget;
     widget.show();
 

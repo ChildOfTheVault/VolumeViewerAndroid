@@ -19,6 +19,7 @@ private:
 
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;
+    QOpenGLBuffer arrayBuf2;
 };
 
 #endif // GEOMETRYENGINE_H
