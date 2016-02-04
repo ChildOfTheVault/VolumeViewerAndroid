@@ -146,14 +146,10 @@ void GeometryEngine::initWireCubeGeometry()
         {QVector3D( 1.0f,  1.0f, -1.0f), QVector2D(0.66f, 1.0f)},  // v23
 
         // Vertex data for face 5
-        //{QVector3D(-1.0f,  -1.0f,  -1.0f), QVector2D(0.33f, 0.5f)}, // v20
-        //{QVector3D( 1.0f,  -1.0f,  -1.0f), QVector2D(0.66f, 0.5f)}, // v21
-        //{QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.33f, 0.5f)}, // v18
-        //{QVector3D( 1.0f, -1.0f,  1.0f), QVector2D(0.66f, 0.5f)} // v19
-        {QVector3D(-2.0f,  -2.0f,  -2.0f), QVector2D(0.33f, 0.5f)}, // v20
-        {QVector3D( 2.0f,  -2.0f,  -2.0f), QVector2D(0.66f, 0.5f)}, // v21
-        {QVector3D(-2.0f, -2.0f,  2.0f), QVector2D(0.33f, 0.5f)}, // v18
-        {QVector3D( 2.0f, -2.0f,  2.0f), QVector2D(0.66f, 0.5f)} // v19
+        {QVector3D(-1.0f,  -1.0f,  -1.0f), QVector2D(0.33f, 0.5f)}, // v20
+        {QVector3D( 1.0f,  -1.0f,  -1.0f), QVector2D(0.66f, 0.5f)}, // v21
+        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.33f, 0.5f)}, // v18
+        {QVector3D( 1.0f, -1.0f,  1.0f), QVector2D(0.66f, 0.5f)} // v19
     };
 
 //! [1]
@@ -163,10 +159,14 @@ void GeometryEngine::initWireCubeGeometry()
 }
 
 //! [2]
-void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
+void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1)
 {
     // Tell OpenGL which VBOs to use
+    if (option1 == 1)
     arrayBuf.bind();
+    else
+    arrayBuf2.bind();
+    //arrayBuf.bind();
     indexBuf.bind();
 
     // Offset for position
@@ -187,10 +187,13 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
     // Draw cube geometry using indices from VBO 1
-    glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+    //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
 
-    arrayBuf2.bind();
+    //arrayBuf2.bind();
+    if (option1 == 1)
     glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
+    else
+    glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
     //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
 }
 //! [2]

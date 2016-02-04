@@ -50,6 +50,8 @@ void MainWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void MainWidget::mousePressEvent(QMouseEvent *event)
 {
+    //QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+    //QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
     lastPos = event->pos();
     if (event->x() < 220 && event->y() <= 220 ) {
         //qDebug( "Pressed the invisi-button" );
@@ -248,17 +250,21 @@ void MainWidget::paintGL()
     program.setUniformValue("texture", 0);
 
     // Draw cube geometry
-    geometries->drawCubeGeometry(&program);
+    geometries->drawCubeGeometry(&program, passIt);
 
     QWidget *frame = new QWidget(this);
     frame->setGeometry(20, 0, 200, 200);
-    frame->setStyleSheet("background-image: url(:/vv_arrow_left.png)");
+    frame->setStyleSheet("background-image: url(:/left_arrow.png)");
 
     QWidget *frame2 = new QWidget(this);
     frame2->setGeometry(20, 220, 200, 200);
-    frame2->setStyleSheet("background-image: url(:/vv_arrow_right.png)");
+    frame2->setStyleSheet("background-image: url(:/right_arrow.png)");
 
     QWidget *frame3 = new QWidget(this);
     frame3->setGeometry(20, 440, 200, 200);
-    frame3->setStyleSheet("background-image: url(:/vv_settings.png)");
+    frame3->setStyleSheet("background-image: url(:/settings.png)");
+
+    QWidget *frame4 = new QWidget(this);
+    frame4->setGeometry(20, 660, 200, 200);
+    frame4->setStyleSheet("background-image: url(:/contour.png)");
 }

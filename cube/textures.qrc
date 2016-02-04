@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>cube.png</file>
-        <file>tap.png</file>
-        <file>vv_arrow_left.png</file>
-        <file>vv_arrow_right.png</file>
-        <file>vv_settings.png</file>
-    </qresource>
-</RCC>
