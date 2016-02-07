@@ -13,7 +13,7 @@ attribute vec2 a_texcoord;
 varying vec2 v_texcoord;
 
 
-varying vec3 lightDir,normal;
+//varying vec3 lightDir,normal;
 
 varying vec3 vViewPosition;
 varying float passIt2;

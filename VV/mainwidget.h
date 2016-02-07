@@ -60,6 +60,10 @@ private:
     int yRot;
     int zRot;
     float passIt;
+    float toggleFOV;
+    float toggleSettings;
+    QWidget *loadfile;
+    int test;
 };
 
 #endif // MAINWIDGET_H

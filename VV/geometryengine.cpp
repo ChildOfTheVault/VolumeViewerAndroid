@@ -115,39 +115,39 @@ void GeometryEngine::initWireCubeGeometry()
         // Vertex data for face 0
         {QVector3D(1.0f, -1.0f,  1.0f), QVector2D(0.0f, 0.0f)},  // v0
         {QVector3D( 1.0f, 1.0f,  1.0f), QVector2D(0.33f, 0.0f)}, // v1
-
+        {QVector3D(1.0f,  -1.0f,  1.0f), QVector2D(0.0f, 0.5f)},  // v2
+        {QVector3D( 1.0f,  -1.0f,  -1.0f), QVector2D(0.33f, 0.5f)}, // v3
 
         // Vertex data for face 1
         {QVector3D( 1.0f, -1.0f,  -1.0f), QVector2D( 0.0f, 0.5f)}, // v4
         {QVector3D( 1.0f, 1.0f, -1.0f), QVector2D(0.33f, 0.5f)}, // v5
         {QVector3D( 1.0f,  1.0f,  1.0f), QVector2D(0.0f, 1.0f)},  // v6
         {QVector3D( 1.0f,  1.0f, -1.0f), QVector2D(0.33f, 1.0f)}, // v7
-        {QVector3D(1.0f,  -1.0f,  1.0f), QVector2D(0.0f, 0.5f)},  // v2
-        {QVector3D( 1.0f,  -1.0f,  -1.0f), QVector2D(0.33f, 0.5f)}, // v3
 
         // Vertex data for face 2
         {QVector3D( -1.0f, -1.0f, 1.0f), QVector2D(0.66f, 0.5f)}, // v8
         {QVector3D(-1.0f, -1.0f, -1.0f), QVector2D(1.0f, 0.5f)},  // v9
-        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(0.66f, 0.5f)}, // v14
-        {QVector3D(-1.0f,  -1.0f,  -1.0f), QVector2D(1.0f, 0.5f)},  // v15
+        {QVector3D( -1.0f,  -1.0f, 1.0f), QVector2D(0.66f, 1.0f)}, // v10
+        {QVector3D(-1.0f,  1.0f, 1.0f), QVector2D(1.0f, 1.0f)},  // v11
 
         // Vertex data for face 3
         {QVector3D(-1.0f, 1.0f, 1.0f), QVector2D(0.66f, 0.0f)}, // v12
         {QVector3D(-1.0f, 1.0f,  -1.0f), QVector2D(1.0f, 0.0f)},  // v13
-        {QVector3D( -1.0f,  -1.0f, 1.0f), QVector2D(0.66f, 1.0f)}, // v10
-        {QVector3D(-1.0f,  1.0f, 1.0f), QVector2D(1.0f, 1.0f)},  // v11
+        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(0.66f, 0.5f)}, // v14
+        {QVector3D(-1.0f,  -1.0f,  -1.0f), QVector2D(1.0f, 0.5f)},  // v15
 
         // Vertex data for face 4
         {QVector3D(-1.0f, 1.0f, 1.0f), QVector2D(0.33f, 0.0f)}, // v16
         {QVector3D( 1.0f, 1.0f, 1.0f), QVector2D(0.66f, 0.0f)}, // v17
-        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(0.33f, 1.0f)}, // v22
-        {QVector3D( 1.0f,  1.0f, -1.0f), QVector2D(0.66f, 1.0f)},  // v23
+        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.33f, 0.5f)}, // v18
+        {QVector3D( 1.0f, -1.0f,  1.0f), QVector2D(0.66f, 0.5f)}, // v19
 
         // Vertex data for face 5
         {QVector3D(-1.0f,  -1.0f,  -1.0f), QVector2D(0.33f, 0.5f)}, // v20
         {QVector3D( 1.0f,  -1.0f,  -1.0f), QVector2D(0.66f, 0.5f)}, // v21
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.33f, 0.5f)}, // v18
-        {QVector3D( 1.0f, -1.0f,  1.0f), QVector2D(0.66f, 0.5f)} // v19
+        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(0.33f, 1.0f)}, // v22
+        {QVector3D( 1.0f,  1.0f, -1.0f), QVector2D(0.66f, 1.0f)}  // v23
+
     };
 
 
@@ -160,11 +160,12 @@ void GeometryEngine::initWireCubeGeometry()
 void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1)
 {
     // Tell OpenGL which VBOs to use
-    if (option1 == 1)
-    arrayBuf.bind();
-    else
-    arrayBuf2.bind();
-    //arrayBuf.bind();
+    if (option1 == 0) {
+        arrayBuf.bind();
+    }
+    else {
+      arrayBuf2.bind();
+    }
     indexBuf.bind();
 
     // Offset for position
@@ -188,9 +189,9 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1
     //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
 
     //arrayBuf2.bind();
-    if (option1 == 1)
-    glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
-    else
+    if (option1 == 0)
     glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+    else
+    glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
     //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
 }

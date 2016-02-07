@@ -18,11 +18,12 @@ varying vec2 v_texcoord;
 void main()
 {
 
-    if (passIt2 > 0.0) {
-        gl_FragColor = vec4(vViewPosition, 1.0);
+    if (passIt2 == 0.0) {
+        //gl_FragColor = vec4(vViewPosition, 1.0);
+        gl_FragColor = texture2D(texture, v_texcoord);
     }
     else {
-        gl_FragColor = texture2D(texture, v_texcoord);
+        gl_FragColor = vec4(1.0, 0.72, 0.78, 1.0);
     }
 }
 //! [0]

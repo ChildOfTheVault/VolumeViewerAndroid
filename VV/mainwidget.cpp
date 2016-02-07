@@ -8,6 +8,8 @@ MainWidget::MainWidget(QWidget *parent) :
     geometries(0),
     texture(0),
     angularSpeed(0)
+    //toggleSettings(0),
+    //toggleFOV(0)
 {
 }
 
@@ -53,41 +55,51 @@ void MainWidget::mousePressEvent(QMouseEvent *event)
     //QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
     lastPos = event->pos();
     if (event->x() < 220 && event->y() <= 220 ) {
-        //qDebug( "Pressed the invisi-button" );
         if (passIt == 1.0) {
             passIt = 0.0;
         }
         else {
             passIt = 1.0;
         }
-        MainSettings ms(this);
-        ms.show();
+        //MainSettings ms(this);
+        //ms.show();
     update();
     }
     else if (event->x() < 220 && (event->y() > 220 && event->y() <= 440)) {
-        //qDebug( "Pressed the invisi-button" );
         if (passIt == 1.0) {
             passIt = 0.0;
         }
         else {
             passIt = 1.0;
         }
-        MainSettings ms(this);
-        ms.show();
+        //MainSettings ms(this);
+        //ms.show();
     update();
     }
     else if (event->x() < 220 && (event->y() > 440 && event->y() <= 660)) {
-        //MainWidget widget;
-        //widget.show();
-        //qDebug( "Pressed the invisi-button" );
-        if (passIt == 1.0) {
-            passIt = 0.0;
+        qDebug("Pressed settings");
+        if (toggleSettings == 1.0) {
+            loadfile->setVisible(true);
+            toggleSettings = 0.0;
         }
         else {
-            passIt = 1.0;
+            loadfile->setVisible(false);
+            toggleSettings = 1.0;
         }
-        MainSettings ms(this);
-        ms.show();
+        //MainSettings ms(this);
+        //ms.show();
+    update();
+    }
+    else if (event->x() < 220 && (event->y() > 660 && event->y() <= 880)) {
+        qDebug("Pressed contour");
+        if (toggleFOV == 1.0) {
+            toggleFOV = 0.0;
+        }
+        else {
+            toggleFOV = 1.0;
+        }
+        //MainSettings ms(this);
+        //ms.show();
     update();
     }
 }
@@ -210,7 +222,13 @@ void MainWidget::resizeGL(int w, int h)
     qreal aspect = qreal(w) / qreal(h ? h : 1);
 
     // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-    const qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
+    qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
+    if (toggleFOV == 1.0) {
+        zNear = 3.0;
+        zFar = 7.0;
+        fov = 25.0;
+    }
+
 
     // Reset projection
     projection.setToIdentity();
@@ -249,6 +267,7 @@ void MainWidget::paintGL()
     // Draw cube geometry
     geometries->drawCubeGeometry(&program, passIt);
 
+    if (test != 1) {
     QWidget *frame = new QWidget(this);
     frame->setGeometry(20, 0, 200, 200);
     frame->setStyleSheet("background-image: url(:/left_arrow.png)");
@@ -264,4 +283,22 @@ void MainWidget::paintGL()
     QWidget *frame4 = new QWidget(this);
     frame4->setGeometry(20, 660, 200, 200);
     frame4->setStyleSheet("background-image: url(:/contour.png)");
+
+    //QWidget *loadfile = new QWidget(this);
+      loadfile = new QWidget(this);
+      loadfile->setGeometry(1600, 20, 180, 70);
+      loadfile->setStyleSheet("background-image: url(:/button.png)");
+      test = 1;
+    }
+
+    //loadfile->setGeometry(1600, 20, 200, 150);
+    /*
+    if (toggleSettings == 1.0) {
+        qDebug("test");
+        loadfile->setGeometry(1400, 20, 200, 150);
+        //loadfile->hide();
+    }
+    else {
+       loadfile->setGeometry(1600, 20, 200, 150);
+    } */
 }
