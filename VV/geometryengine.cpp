@@ -9,7 +9,6 @@ struct VertexData
     QVector2D texCoord;
 };
 
-//! [0]
 GeometryEngine::GeometryEngine()
     : indexBuf(QOpenGLBuffer::IndexBuffer)
 {
@@ -32,7 +31,7 @@ GeometryEngine::~GeometryEngine()
     indexBuf.destroy();
     arrayBuf2.destroy();
 }
-//! [0]
+
 
 void GeometryEngine::initCubeGeometry()
 {
@@ -95,7 +94,6 @@ void GeometryEngine::initCubeGeometry()
         20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
     };
 
-//! [1]
     // Transfer vertex data to VBO 0
     arrayBuf.bind();
     arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
@@ -103,7 +101,7 @@ void GeometryEngine::initCubeGeometry()
     // Transfer index data to VBO 1
     indexBuf.bind();
     indexBuf.allocate(indices, 34 * sizeof(GLushort));
-//! [1]
+
 }
 
 void GeometryEngine::initWireCubeGeometry()
@@ -152,13 +150,13 @@ void GeometryEngine::initWireCubeGeometry()
         {QVector3D( 1.0f, -1.0f,  1.0f), QVector2D(0.66f, 0.5f)} // v19
     };
 
-//! [1]
+
     // Transfer vertex data to VBO 0
     arrayBuf2.bind();
     arrayBuf2.allocate(vertices, 24 * sizeof(VertexData));
 }
 
-//! [2]
+
 void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1)
 {
     // Tell OpenGL which VBOs to use
@@ -196,4 +194,3 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1
     glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
     //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
 }
-//! [2]
