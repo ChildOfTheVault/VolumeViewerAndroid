@@ -13,6 +13,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QPushButton>
+#include <QScreen>
+//#include <QDesktopWidget>
 
 class GeometryEngine;
 
@@ -37,6 +39,7 @@ protected:
     void paintGL() Q_DECL_OVERRIDE;
     void initShaders();
     void initTextures();
+    //QRect const getScreenSize();
 
 signals:
     void clicked();
@@ -63,7 +66,10 @@ private:
     float toggleFOV;
     float toggleSettings;
     QWidget *loadfile;
+    QWidget *splash;
     int test;
+    float scale;
 };
+
 
 #endif // MAINWIDGET_H

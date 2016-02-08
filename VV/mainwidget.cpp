@@ -51,6 +51,7 @@ void MainWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void MainWidget::mousePressEvent(QMouseEvent *event)
 {
+    splash->setVisible(false);
     //QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
     //QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
     lastPos = event->pos();
@@ -91,13 +92,14 @@ void MainWidget::mousePressEvent(QMouseEvent *event)
     update();
     }
     else if (event->x() < 220 && (event->y() > 660 && event->y() <= 880)) {
-        qDebug("Pressed contour");
         if (toggleFOV == 1.0) {
             toggleFOV = 0.0;
         }
         else {
             toggleFOV = 1.0;
         }
+        scale = scale + 0.1;
+        //resizeGL(1920, 1080);
         //MainSettings ms(this);
         //ms.show();
     update();
@@ -203,15 +205,10 @@ void MainWidget::initTextures()
 {
     // Load cube.png image
     texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
-
-    // Set nearest filtering mode for texture minification
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
-
-    // Set bilinear filtering mode for texture magnification
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
-
-    // Wrap texture coordinates by repeating
     texture->setWrapMode(QOpenGLTexture::Repeat);
+    scale = 1;
 }
 
 
@@ -223,11 +220,11 @@ void MainWidget::resizeGL(int w, int h)
 
     // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
     qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
-    if (toggleFOV == 1.0) {
+    /*if (toggleFOV == 1.0) {
         zNear = 3.0;
         zFar = 7.0;
-        fov = 25.0;
-    }
+        fov = 20.0;
+    }*/
 
 
     // Reset projection
@@ -249,9 +246,10 @@ void MainWidget::paintGL()
     // Calculate model view transformation
     QMatrix4x4 matrix;
     matrix.translate(0.0, 0.0, -5.0);
-    matrix.rotate(xRot / 16.0f, 1.0f, 0.0f, 0.0f);
-    matrix.rotate(yRot / 16.0f, 0.0f, 1.0f, 0.0f);
-    matrix.rotate(zRot / 16.0f, 0.0f, 0.0f, 1.0f);
+    matrix.rotate(xRot / 10.0f, 1.0f, 0.0f, 0.0f);
+    matrix.rotate(yRot / 10.0f, 0.0f, 1.0f, 0.0f);
+    matrix.rotate(zRot / 10.0f, 0.0f, 0.0f, 1.0f);
+    matrix.scale(scale,scale,scale);
     //matrix.rotate(rotation);
 
     // Set modelview-projection matrix
@@ -288,17 +286,56 @@ void MainWidget::paintGL()
       loadfile = new QWidget(this);
       loadfile->setGeometry(1600, 20, 180, 70);
       loadfile->setStyleSheet("background-image: url(:/button.png)");
+
+      splash = new QWidget(this);
+      splash->setGeometry(0, 0, 1920, 1080);
+      splash->setStyleSheet("background-image: url(:/android/res/drawable-ldpi/logo.png)");
+
       test = 1;
     }
-
-    //loadfile->setGeometry(1600, 20, 200, 150);
-    /*
-    if (toggleSettings == 1.0) {
-        qDebug("test");
-        loadfile->setGeometry(1400, 20, 200, 150);
-        //loadfile->hide();
-    }
-    else {
-       loadfile->setGeometry(1600, 20, 200, 150);
-    } */
 }
+/* BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
+//============================================================================//
+//                                 GLTexture3D                                //
+//============================================================================//
+
+GLTexture3D::GLTexture3D(int width, int height, int depth)
+{
+    GLBUFFERS_ASSERT_OPENGL("GLTexture3D::GLTexture3D", glTexImage3D, return)
+
+    glBindTexture(GL_TEXTURE_3D, m_texture);
+    glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
+        GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+void GLTexture3D::load(int width, int height, int depth, QRgb *data)
+{
+    GLBUFFERS_ASSERT_OPENGL("GLTexture3D::load", glTexImage3D, return)
+
+    glBindTexture(GL_TEXTURE_3D, m_texture);
+    glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
+        GL_BGRA, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+void GLTexture3D::bind()
+{
+    glBindTexture(GL_TEXTURE_3D, m_texture);
+    glEnable(GL_TEXTURE_3D);
+}
+
+void GLTexture3D::unbind()
+{
+    glBindTexture(GL_TEXTURE_3D, 0);
+    glDisable(GL_TEXTURE_3D);
+}
+*/
