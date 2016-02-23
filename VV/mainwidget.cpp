@@ -246,9 +246,9 @@ void MainWidget::paintGL()
     // Calculate model view transformation
     QMatrix4x4 matrix;
     matrix.translate(0.0, 0.0, -5.0);
-    matrix.rotate(xRot / 10.0f, 1.0f, 0.0f, 0.0f);
-    matrix.rotate(yRot / 10.0f, 0.0f, 1.0f, 0.0f);
-    matrix.rotate(zRot / 10.0f, 0.0f, 0.0f, 1.0f);
+    matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
+    matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
+    matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
     matrix.scale(scale,scale,scale);
     //matrix.rotate(rotation);
 
@@ -338,4 +338,80 @@ void GLTexture3D::unbind()
     glBindTexture(GL_TEXTURE_3D, 0);
     glDisable(GL_TEXTURE_3D);
 }
+
 */
+
+//void VolumeViewer::BuildTexture(const char *ifile)
+void VolumeViewer::BuildTexture(const char *ifile)
+{
+    // VERY IMPORTANT:
+    // this line loads the address of the glTexImage3D function into the function pointer of the same name.
+    // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
+    // the environment the program is being run in MAY OR MAY NOT support it, if not we'll get back a NULL pointer.
+    // this is necessary to use any OpenGL function declared in the glext.h header file
+    // the Pointer to FunctioN ... PROC types are declared in the same header file with a type appropriate to the function name
+    #ifdef WIN32
+        glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
+    #endif
+
+
+    // ask for enough memory for the texels and make sure we got it before proceeding
+    m_acTexVol.add(1);
+    m_acTexVol.last() = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+    if (m_acTexVol.last() == NULL)
+        return;
+    short int r, s, t;
+
+    // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
+    // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
+    // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
+    // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
+    ifstream fin(ifile, ios::in | ios::binary);
+    short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
+    fin.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+    int iIndex = 0;
+    double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
+    double dColorRange = 255.0;
+    double dScaledIntensity = 0.0;
+    for (r = 0; r < DEPTH; r++) {
+        for (s = WIDTH-1; s >= 0; s--) {
+        //<sandra>
+        //for (s = 0; s < WIDTH; s++) {
+            for (t = 0; t < HEIGHT; t++, iIndex++) {
+            //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
+                if (m_iWindowWidth <= 0)
+                    dScaledIntensity = (double)aiTemp[iIndex];
+                else
+                    dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
+                if (dScaledIntensity < 0.0)
+                    dScaledIntensity = 0.0;
+                else if (dScaledIntensity > dColorRange)
+                    dScaledIntensity = dColorRange;
+                m_acTexVol.last()[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
+            }
+        }
+    }
+    delete [] aiTemp;
+    fin.close();
+
+    // request 1 texture name from OpenGL
+    m_agluiTexName.add(1);
+    glGenTextures(1, &m_agluiTexName.last());
+    // tell OpenGL we're going to be setting up the texture name it gave us
+    glBindTexture(GL_TEXTURE_3D, m_agluiTexName.last());
+    // when this texture needs to be shrunk to fit on small polygons, use linear interpolation of the texels to determine the color
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // when this texture needs to be magnified to fit on a big polygon, use linear interpolation of the texels to determine the color
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // we do not want the texture to repeat over the S axis, so if we specify coordinates out of range we will not get textured.
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    // same as above for T axis
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    // same as above for R axis
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    // this is a 3d texture, level 0 (max detail), GL should store it in RGB8 format, its WIDTHxHEIGHTxDEPTH in size,
+    // it doesnt have a border, we're giving it to GL in RGB format as a series of unsigned bytes, and texels is where the texel data is.
+    //glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol.last());
+}
+
