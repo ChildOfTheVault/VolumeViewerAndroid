@@ -339,10 +339,10 @@ void GLTexture3D::unbind()
     glDisable(GL_TEXTURE_3D);
 }
 
-*/
+
 
 //void VolumeViewer::BuildTexture(const char *ifile)
-void VolumeViewer::BuildTexture(const char *ifile)
+void MainWidget::BuildTexture(const char *ifile)
 {
     // VERY IMPORTANT:
     // this line loads the address of the glTexImage3D function into the function pointer of the same name.
@@ -414,4 +414,5 @@ void VolumeViewer::BuildTexture(const char *ifile)
     //glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol.last());
 }
+*/
 
