@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>cube.png</file>
+        <file>tap.png</file>
+        <file>button.png</file>
+        <file>contour.png</file>
+        <file>left_arrow.png</file>
+        <file>right_arrow.png</file>
+        <file>settings.png</file>
+        <file>android/res/drawable-ldpi/logo.png</file>
+        <file>77-Oblique.dat</file>
+    </qresource>
+</RCC>
