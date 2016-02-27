@@ -9,11 +9,15 @@
 #include <QMatrix4x4>
 #include <QQuaternion>
 #include <QVector2D>
+#include <QVector3D>
 #include <QBasicTimer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QPushButton>
 #include <QScreen>
+//import android.opengl.GLES30;
+//#import <OpenGLES/ES3/gl.h>
+//#import <OpenGLES/ES3/glext.h>
 //#include <QDesktopWidget>
 
 class GeometryEngine;
@@ -39,6 +43,9 @@ protected:
     void paintGL() Q_DECL_OVERRIDE;
     void initShaders();
     void initTextures();
+    bool event(QEvent *event);
+    //void GLTexture3D(int width, int height, int depth);
+    //void BuildTexture(const char *ifile);
     //QRect const getScreenSize();
 
 signals:
@@ -69,6 +76,7 @@ private:
     QWidget *splash;
     int test;
     float scale;
+    qreal totalScaleFactor;
 };
 
 

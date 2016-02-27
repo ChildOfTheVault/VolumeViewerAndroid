@@ -1,6 +1,7 @@
 #include "mainwidget.h"
 #include "mainsettings.h"
 #include <QMouseEvent>
+#include <QTouchEvent>
 #include <math.h>
 
 MainWidget::MainWidget(QWidget *parent) :
@@ -52,16 +53,13 @@ void MainWidget::mouseReleaseEvent(QMouseEvent *e)
 void MainWidget::mousePressEvent(QMouseEvent *event)
 {
     splash->setVisible(false);
+
     //QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
     //QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+    //qDebug(touchPoints);
     lastPos = event->pos();
     if (event->x() < 220 && event->y() <= 220 ) {
-        if (passIt == 1.0) {
-            passIt = 0.0;
-        }
-        else {
-            passIt = 1.0;
-        }
+        qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
         //MainSettings ms(this);
         //ms.show();
     update();
@@ -164,6 +162,8 @@ void MainWidget::initializeGL()
 
     initShaders();
     initTextures();
+
+    setAttribute(Qt::WA_AcceptTouchEvents);
 
 
     // Enable depth buffer
@@ -268,7 +268,7 @@ void MainWidget::paintGL()
     if (test != 1) {
     QWidget *frame = new QWidget(this);
     frame->setGeometry(20, 0, 200, 200);
-    frame->setStyleSheet("background-image: url(:/left_arrow.png)");
+    frame->setStyleSheet("background-image: url(:/home.png)");
 
     QWidget *frame2 = new QWidget(this);
     frame2->setGeometry(20, 220, 200, 200);
@@ -294,16 +294,107 @@ void MainWidget::paintGL()
       test = 1;
     }
 }
-/* BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
+
+bool MainWidget::event(QEvent *event)
+ {
+     switch (event->type()) {
+     case QEvent::TouchBegin:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         splash->setVisible(false);
+         if (touchPoints.count() == 1) {
+             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+             qreal x = touch1.pos().x();
+             qreal y = touch1.pos().y();
+             //lastPos = touch1.lastPos();
+             if (x < 220 && y <= 220 ) {
+                 qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
+                 //MainSettings ms(this);
+                 //ms.show();
+             update();
+             }
+             else if (x < 220 && (y > 220 && y <= 440)) {
+                 if (passIt == 1.0) {
+                     passIt = 0.0;
+                 }
+                 else {
+                     passIt = 1.0;
+                 }
+                 //MainSettings ms(this);
+                 //ms.show();
+             update();
+             }
+             else if (x < 220 && (y > 440 && y <= 660)) {
+                 qDebug("Pressed settings");
+                 if (toggleSettings == 1.0) {
+                     loadfile->setVisible(true);
+                     toggleSettings = 0.0;
+                 }
+                 else {
+                     loadfile->setVisible(false);
+                     toggleSettings = 1.0;
+                 }
+                 //MainSettings ms(this);
+                 //ms.show();
+             update();
+             }
+             else if (x < 220 && (y > 660 && y <= 880)) {
+                 if (toggleFOV == 1.0) {
+                     toggleFOV = 0.0;
+                 }
+                 else {
+                     toggleFOV = 1.0;
+                 }
+                 scale = scale + 0.1;
+                 //resizeGL(1920, 1080);
+                 //MainSettings ms(this);
+                 //ms.show();
+             update();
+             }
+         }
+     }
+     case QEvent::TouchUpdate:
+     case QEvent::TouchEnd:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         if (touchPoints.count() == 2) {
+             qDebug("TWO TOUCH");
+             // determine scale factor
+             const QTouchEvent::TouchPoint &touchPoint0 = touchPoints.first();
+             const QTouchEvent::TouchPoint &touchPoint1 = touchPoints.last();
+             qreal currentScaleFactor =
+                     QLineF(touchPoint0.pos(), touchPoint1.pos()).length()
+                     / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
+             if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
+                 // if one of the fingers is released, remember the current scale
+                 // factor so that adding another finger later will continue zooming
+                 // by adding new scale factor to the existing remembered value.
+                 totalScaleFactor *= currentScaleFactor;
+                 currentScaleFactor = 1;
+             }
+             //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
+                                             //totalScaleFactor * currentScaleFactor));
+         }
+         return true;
+     }
+     default:
+         break;
+     }
+     return QWidget::event(event);
+ }
+//BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
 //============================================================================//
 //                                 GLTexture3D                                //
 //============================================================================//
-
-GLTexture3D::GLTexture3D(int width, int height, int depth)
+/*
+void MainWidget::GLTexture3D(int width, int height, int depth)
 {
-    GLBUFFERS_ASSERT_OPENGL("GLTexture3D::GLTexture3D", glTexImage3D, return)
+    //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return)
 
-    glBindTexture(GL_TEXTURE_3D, m_texture);
+    //glBindTexture(GL_TEXTURE_3D, m_texture);
+    glBindTexture(GL_TEXTURE_3D, texture);
     glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
         GL_BGRA, GL_UNSIGNED_BYTE, 0);
 
@@ -339,8 +430,6 @@ void GLTexture3D::unbind()
     glDisable(GL_TEXTURE_3D);
 }
 
-
-
 //void VolumeViewer::BuildTexture(const char *ifile)
 void MainWidget::BuildTexture(const char *ifile)
 {
@@ -350,9 +439,11 @@ void MainWidget::BuildTexture(const char *ifile)
     // the environment the program is being run in MAY OR MAY NOT support it, if not we'll get back a NULL pointer.
     // this is necessary to use any OpenGL function declared in the glext.h header file
     // the Pointer to FunctioN ... PROC types are declared in the same header file with a type appropriate to the function name
-    #ifdef WIN32
+
+    //#ifdef WIN32
+        PFNGLTEXIMAGE3DPROC glTexImage3D;
         glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
-    #endif
+    //#endif
 
 
     // ask for enough memory for the texels and make sure we got it before proceeding
