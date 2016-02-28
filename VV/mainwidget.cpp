@@ -3,6 +3,11 @@
 #include <QMouseEvent>
 #include <QTouchEvent>
 #include <math.h>
+#include <cstdint>
+#include <fstream>
+#include <iostream>
+
+typedef uint8_t BYTE;
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
@@ -367,11 +372,37 @@ bool MainWidget::event(QEvent *event)
             rotateBy(8 * dy, 8 * dx, 0);
             lastPos2 = touch1.pos();
          }
+         if (touchPoints.count() == 2) {
+             // determine scale factor
+             const QTouchEvent::TouchPoint &touchPoint0 = touchPoints.first();
+             const QTouchEvent::TouchPoint &touchPoint1 = touchPoints.last();
+             qreal currentScaleFactor =
+                     QLineF(touchPoint0.pos(), touchPoint1.pos()).length()
+                     / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
+             //if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
+             if ((lastPos2 != touchPoint0.pos() && lastPos3 != touchPoint1.pos())) {
+                 // if one of the fingers is released, remember the current scale
+                 // factor so that adding another finger later will continue zooming
+                 // by adding new scale factor to the existing remembered value.
+                 //totalScaleFactor *= currentScaleFactor;
+                 //currentScaleFactor = ((1-currentScaleFactor)/25)+1
+                 if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
+                    scale *= ((1-currentScaleFactor)/25)+1;
+                    update();
+                 }
+                 currentScaleFactor = 1;
+                 lastPos2 = touchPoint0.pos();
+                 lastPos3 = touchPoint1.pos();
+             }
+             //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
+                                             //totalScaleFactor * currentScaleFactor));
+         }
      }
      case QEvent::TouchEnd:
      {
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         /*
          if (touchPoints.count() == 2) {
              qDebug("TWO TOUCH");
              // determine scale factor
@@ -384,12 +415,14 @@ bool MainWidget::event(QEvent *event)
                  // if one of the fingers is released, remember the current scale
                  // factor so that adding another finger later will continue zooming
                  // by adding new scale factor to the existing remembered value.
-                 totalScaleFactor *= currentScaleFactor;
+                 //totalScaleFactor *= currentScaleFactor;
+                 scale *= currentScaleFactor;
                  currentScaleFactor = 1;
              }
              //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
                                              //totalScaleFactor * currentScaleFactor));
          }
+         */
          return true;
      }
      default:
@@ -442,10 +475,16 @@ void GLTexture3D::unbind()
     glBindTexture(GL_TEXTURE_3D, 0);
     glDisable(GL_TEXTURE_3D);
 }
-
+*/
+/*
 //void VolumeViewer::BuildTexture(const char *ifile)
 void MainWidget::BuildTexture(const char *ifile)
 {
+    int WIDTH = 100;
+    int HEIGHT = 100;
+    int DEPTH = 100;
+    int BYTES_PER_TEXEL = 1;
+    BYTE* m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
     // VERY IMPORTANT:
     // this line loads the address of the glTexImage3D function into the function pointer of the same name.
     // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
@@ -454,15 +493,15 @@ void MainWidget::BuildTexture(const char *ifile)
     // the Pointer to FunctioN ... PROC types are declared in the same header file with a type appropriate to the function name
 
     //#ifdef WIN32
-        PFNGLTEXIMAGE3DPROC glTexImage3D;
-        glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
+        //PFNGLTEXIMAGE3DPROC glTexImage3D;
+        //glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
     //#endif
 
 
     // ask for enough memory for the texels and make sure we got it before proceeding
-    m_acTexVol.add(1);
-    m_acTexVol.last() = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
-    if (m_acTexVol.last() == NULL)
+    //m_acTexVol.add(1);
+    //m_acTexVol.last() = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+    if (m_acTexVol == NULL)
         return;
     short int r, s, t;
 
@@ -470,9 +509,12 @@ void MainWidget::BuildTexture(const char *ifile)
     // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
     // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
-    ifstream fin(ifile, ios::in | ios::binary);
+    FILE *pf = fopen("77-Oblique.dat", "r") ;
+    std::filebuf buf(pf);
+    std::istream stream(&buf);
+    //ifstream fin(ifile, ios::in | ios::binary);
     short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
-    fin.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+    stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
     int iIndex = 0;
     double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
@@ -496,7 +538,7 @@ void MainWidget::BuildTexture(const char *ifile)
         }
     }
     delete [] aiTemp;
-    fin.close();
+    stream.close();
 
     // request 1 texture name from OpenGL
     m_agluiTexName.add(1);
@@ -517,6 +559,7 @@ void MainWidget::BuildTexture(const char *ifile)
     // it doesnt have a border, we're giving it to GL in RGB format as a series of unsigned bytes, and texels is where the texel data is.
     //glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol.last());
+
 }
 */
 

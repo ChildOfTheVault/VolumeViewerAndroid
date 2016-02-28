@@ -45,7 +45,7 @@ protected:
     void initTextures();
     bool event(QEvent *event);
     //void GLTexture3D(int width, int height, int depth);
-    //void BuildTexture(const char *ifile);
+    void BuildTexture(const char *ifile);
     //QRect const getScreenSize();
 
 signals:
@@ -67,6 +67,7 @@ private:
     QPushButton *m_button;
     QPoint lastPos;
     QPointF lastPos2;
+    QPointF lastPos3;
     int xRot;
     int yRot;
     int zRot;
