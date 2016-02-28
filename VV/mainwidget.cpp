@@ -307,7 +307,7 @@ bool MainWidget::event(QEvent *event)
              const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
              qreal x = touch1.pos().x();
              qreal y = touch1.pos().y();
-             //lastPos = touch1.lastPos();
+             lastPos2 = touch1.lastPos();
              if (x < 220 && y <= 220 ) {
                  qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
                  //MainSettings ms(this);
@@ -355,6 +355,19 @@ bool MainWidget::event(QEvent *event)
          }
      }
      case QEvent::TouchUpdate:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         if (touchPoints.count() == 1) {
+             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+            qreal x = touch1.pos().x();
+            qreal y = touch1.pos().y();
+            int dx = x - lastPos2.x();
+            int dy = y - lastPos2.y();
+            rotateBy(8 * dy, 8 * dx, 0);
+            lastPos2 = touch1.pos();
+         }
+     }
      case QEvent::TouchEnd:
      {
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);

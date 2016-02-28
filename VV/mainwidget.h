@@ -66,6 +66,7 @@ private:
     QQuaternion rotation;
     QPushButton *m_button;
     QPoint lastPos;
+    QPointF lastPos2;
     int xRot;
     int yRot;
     int zRot;
