@@ -2,6 +2,7 @@
 #include "mainsettings.h"
 #include <QMouseEvent>
 #include <QTouchEvent>
+#include <QOpenGLExtraFunctions>
 #include <math.h>
 #include <cstdint>
 #include <fstream>
@@ -437,10 +438,10 @@ bool MainWidget::event(QEvent *event)
 /*
 void MainWidget::GLTexture3D(int width, int height, int depth)
 {
-    //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return)
-
+    //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return);
+    //glTexImage3D
     //glBindTexture(GL_TEXTURE_3D, m_texture);
-    glBindTexture(GL_TEXTURE_3D, texture);
+    glBindTexture(GL_TEXTURE_3D, m_texture);
     glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
         GL_BGRA, GL_UNSIGNED_BYTE, 0);
 

@@ -6,6 +6,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+//#include <QOpenGLExtraFunctions>
 #include <QMatrix4x4>
 #include <QQuaternion>
 #include <QVector2D>
@@ -44,7 +45,7 @@ protected:
     void initShaders();
     void initTextures();
     bool event(QEvent *event);
-    //void GLTexture3D(int width, int height, int depth);
+    void GLTexture3D(int width, int height, int depth);
     void BuildTexture(const char *ifile);
     //QRect const getScreenSize();
 
@@ -59,6 +60,7 @@ private:
     QOpenGLShaderProgram program;
     GeometryEngine *geometries;
     QOpenGLTexture *texture;
+    GLuint m_texture;
     QMatrix4x4 projection;
     QVector2D mousePressPosition;
     QVector3D rotationAxis;

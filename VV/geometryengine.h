@@ -2,6 +2,7 @@
 #define GEOMETRYENGINE_H
 
 #include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 
