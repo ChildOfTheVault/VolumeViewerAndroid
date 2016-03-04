@@ -23,6 +23,8 @@
 #include <fstream>
 #include <iostream>
 
+typedef uint8_t BYTE;
+
 class GeometryEngine;
 
 class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -83,6 +85,7 @@ private:
     int test;
     float scale;
     qreal totalScaleFactor;
+    BYTE* m_acTexVol;
 };
 
 

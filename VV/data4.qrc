@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>parts/data_37</file>
+        <file>parts/data_38</file>
+        <file>parts/data_39</file>
+        <file>parts/data_40</file>
+        <file>parts/data_41</file>
+        <file>parts/data_42</file>
+        <file>parts/data_43</file>
+        <file>parts/data_44</file>
+        <file>parts/data_45</file>
+        <file>parts/data_46</file>
+        <file>parts/data_47</file>
+        <file>parts/data_48</file>
+    </qresource>
+</RCC>

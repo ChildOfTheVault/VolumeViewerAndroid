@@ -1,5 +1,6 @@
 #include "mainwidget.h"
 #include "mainsettings.h"
+#include <sstream>
 
 
 typedef uint8_t BYTE;
@@ -10,6 +11,7 @@ typedef uint8_t BYTE;
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
 #define TEXEL3(s, t, r) (TEXEL2(s, t) + LAYER(r))					// 3->1 dimension mapping function
+
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
@@ -113,7 +115,7 @@ void MainWidget::initTextures()
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     texture->setWrapMode(QOpenGLTexture::Repeat);
-    QFile file(":/77-Oblique.dat");
+    QFile file(":/parts/data_1");
     if (!file.exists()) {
         qDebug("FILE DOES NOT EXIST");
         file.close();
@@ -369,8 +371,8 @@ void MainWidget::BuildTexture()
     //int DEPTH = 100;
     //int BYTES_PER_TEXEL = 1;
     QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    BYTE* m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
-
+    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+    //char str[20];
     // VERY IMPORTANT:
     // this line loads the address of the glTexImage3D function into the function pointer of the same name.
     // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
@@ -400,15 +402,23 @@ void MainWidget::BuildTexture()
     //std::filebuf buf();
     //buf.open("77-Oblique.dat", std::ios_base.in);
     //std::istream stream(&buf);
-
-    QFile file(":/77-Oblique.dat");
-    file.open(QIODevice::ReadOnly);
-    QDataStream in(&file);
     char aiTemp[WIDTH * HEIGHT * DEPTH];
+    for (int i=1; i < 66; i++) {
+        std::ostringstream temp;
+        temp << i;
+        const QString temp2 = QString::fromStdString(":/parts/data_" + temp.str());
+        QFile file(temp2);
+        if (!file.exists()) {
+            qDebug("FILE DOES NOT EXIST");
+        }
+        file.open(QIODevice::ReadOnly);
+        QDataStream in(&file);
+        in.readRawData(aiTemp, 1000000);
+        file.close();
+    }
     //ifstream fin(ifile, ios::in | ios::binary);
     //short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
     //stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
-    in.readRawData(aiTemp, (WIDTH * HEIGHT * DEPTH));
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
@@ -431,12 +441,12 @@ void MainWidget::BuildTexture()
             }
         }
     }
-    delete [] aiTemp;
-    file.close();
+    //delete [] aiTemp;
+    //file.close();
     //stream.close();
 
     // request 1 texture name from OpenGL
-
+/*
     //m_agluiTexName.add(1);
     glGenTextures(1, &m_texture);
     // tell OpenGL we're going to be setting up the texture name it gave us
@@ -456,6 +466,7 @@ void MainWidget::BuildTexture()
     //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
     //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol);
     f->glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_R8_EXT, WIDTH, HEIGHT, DEPTH, 0, GL_RED_EXT, GL_UNSIGNED_BYTE, m_acTexVol);
+    */
 }
 
 
