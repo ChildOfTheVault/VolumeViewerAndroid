@@ -46,7 +46,10 @@ protected:
     void initTextures();
     bool event(QEvent *event);
     void GLTexture3D(int width, int height, int depth);
-    void BuildTexture(const char *ifile);
+    void BuildTexture();
+    void load(int width, int height, int depth, QRgb *data);
+    void bind();
+    void unbind();
 
 signals:
     void clicked();

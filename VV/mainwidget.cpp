@@ -3,6 +3,13 @@
 
 
 typedef uint8_t BYTE;
+#define WIDTH 100
+#define HEIGHT 100
+#define DEPTH 100
+#define BYTES_PER_TEXEL 1
+#define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
+#define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
+#define TEXEL3(s, t, r) (TEXEL2(s, t) + LAYER(r))					// 3->1 dimension mapping function
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
@@ -106,6 +113,16 @@ void MainWidget::initTextures()
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     texture->setWrapMode(QOpenGLTexture::Repeat);
+    QFile file(":/77-Oblique.dat");
+    if (!file.exists()) {
+        qDebug("FILE DOES NOT EXIST");
+        file.close();
+    }
+    else {
+        file.close();
+        BuildTexture();
+    }
+
     scale = 1;
 }
 
@@ -159,6 +176,8 @@ void MainWidget::paintGL()
 
     // Use texture unit 0 which contains cube.png
     program.setUniformValue("texture", 0);
+    //glBindTexture(GL_TEXTURE_3D_OES, m_texture);
+
 
     // Draw cube geometry
     geometries->drawCubeGeometry(&program, passIt);
@@ -296,57 +315,62 @@ bool MainWidget::event(QEvent *event)
 //============================================================================//
 //                                 GLTexture3D                                //
 //============================================================================//
-/*
+
 void MainWidget::GLTexture3D(int width, int height, int depth)
 {
     //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return);
     //glTexImage3D
-    //glBindTexture(GL_TEXTURE_3D, m_texture);
-    glBindTexture(GL_TEXTURE_3D, m_texture);
-    glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
-        GL_BGRA, GL_UNSIGNED_BYTE, 0);
+    //glBindTexture(m_texture);
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
-    glBindTexture(GL_TEXTURE_3D, 0);
+    GLuint test_tex[1];
+    glGenTextures(1, test_tex);
+    glBindTexture(GL_TEXTURE_3D_OES, test_tex[0]);
+    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, 4, width, height, depth, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_R_OES, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
+    glBindTexture(GL_TEXTURE_3D_OES, 0);
 }
 
-void GLTexture3D::load(int width, int height, int depth, QRgb *data)
+void MainWidget::load(int width, int height, int depth, QRgb *data)
 {
-    GLBUFFERS_ASSERT_OPENGL("GLTexture3D::load", glTexImage3D, return)
-
-    glBindTexture(GL_TEXTURE_3D, m_texture);
-    glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0,
-        GL_BGRA, GL_UNSIGNED_BYTE, data);
-    glBindTexture(GL_TEXTURE_3D, 0);
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
+    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, 4, width, height, depth, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_3D_OES, 0);
 }
 
-void GLTexture3D::bind()
+void MainWidget::bind()
 {
-    glBindTexture(GL_TEXTURE_3D, m_texture);
-    glEnable(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
+    glEnable(GL_TEXTURE_3D_OES);
 }
 
-void GLTexture3D::unbind()
+void MainWidget::unbind()
 {
-    glBindTexture(GL_TEXTURE_3D, 0);
-    glDisable(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D_OES, 0);
+    glDisable(GL_TEXTURE_3D_OES);
 }
-*/
-/*
+
+
 //void VolumeViewer::BuildTexture(const char *ifile)
-void MainWidget::BuildTexture(const char *ifile)
+void MainWidget::BuildTexture()
 {
-    int WIDTH = 100;
-    int HEIGHT = 100;
-    int DEPTH = 100;
-    int BYTES_PER_TEXEL = 1;
+    //int WIDTH = 100;
+    //int HEIGHT = 100;
+    //int DEPTH = 100;
+    //int BYTES_PER_TEXEL = 1;
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     BYTE* m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+
     // VERY IMPORTANT:
     // this line loads the address of the glTexImage3D function into the function pointer of the same name.
     // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
@@ -371,14 +395,22 @@ void MainWidget::BuildTexture(const char *ifile)
     // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
     // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
-    FILE *pf = fopen("77-Oblique.dat", "r") ;
-    std::filebuf buf(pf);
-    std::istream stream(&buf);
+
+    //FILE *pf = fopen("77-Oblique.dat", "r") ;
+    //std::filebuf buf();
+    //buf.open("77-Oblique.dat", std::ios_base.in);
+    //std::istream stream(&buf);
+
+    QFile file(":/77-Oblique.dat");
+    file.open(QIODevice::ReadOnly);
+    QDataStream in(&file);
+    char aiTemp[WIDTH * HEIGHT * DEPTH];
     //ifstream fin(ifile, ios::in | ios::binary);
-    short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
-    stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+    //short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
+    //stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+    in.readRawData(aiTemp, (WIDTH * HEIGHT * DEPTH));
     int iIndex = 0;
-    double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
+    //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
     double dScaledIntensity = 0.0;
     for (r = 0; r < DEPTH; r++) {
@@ -387,41 +419,43 @@ void MainWidget::BuildTexture(const char *ifile)
         //for (s = 0; s < WIDTH; s++) {
             for (t = 0; t < HEIGHT; t++, iIndex++) {
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
-                if (m_iWindowWidth <= 0)
+                //if (m_iWindowWidth <= 0)
                     dScaledIntensity = (double)aiTemp[iIndex];
-                else
-                    dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
+                //else
+                 //   dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
                 if (dScaledIntensity < 0.0)
                     dScaledIntensity = 0.0;
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
-                m_acTexVol.last()[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
+                m_acTexVol[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
             }
         }
     }
     delete [] aiTemp;
-    stream.close();
+    file.close();
+    //stream.close();
 
     // request 1 texture name from OpenGL
-    m_agluiTexName.add(1);
-    glGenTextures(1, &m_agluiTexName.last());
+
+    //m_agluiTexName.add(1);
+    glGenTextures(1, &m_texture);
     // tell OpenGL we're going to be setting up the texture name it gave us
-    glBindTexture(GL_TEXTURE_3D, m_agluiTexName.last());
+    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
     // when this texture needs to be shrunk to fit on small polygons, use linear interpolation of the texels to determine the color
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     // when this texture needs to be magnified to fit on a big polygon, use linear interpolation of the texels to determine the color
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // we do not want the texture to repeat over the S axis, so if we specify coordinates out of range we will not get textured.
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     // same as above for T axis
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // same as above for R axis
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_R_OES, GL_CLAMP_TO_EDGE);
     // this is a 3d texture, level 0 (max detail), GL should store it in RGB8 format, its WIDTHxHEIGHTxDEPTH in size,
     // it doesnt have a border, we're giving it to GL in RGB format as a series of unsigned bytes, and texels is where the texel data is.
-    //glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol.last());
-
+    //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
+    //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol);
+    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_R8_EXT, WIDTH, HEIGHT, DEPTH, 0, GL_RED_EXT, GL_UNSIGNED_BYTE, m_acTexVol);
 }
-*/
+
 
