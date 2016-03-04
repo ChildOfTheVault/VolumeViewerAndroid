@@ -6,7 +6,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
-//#include <QOpenGLExtraFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QMatrix4x4>
 #include <QQuaternion>
 #include <QVector2D>
@@ -16,10 +16,12 @@
 #include <QOpenGLTexture>
 #include <QPushButton>
 #include <QScreen>
-//import android.opengl.GLES30;
-//#import <OpenGLES/ES3/gl.h>
-//#import <OpenGLES/ES3/glext.h>
-//#include <QDesktopWidget>
+#include <QMouseEvent>
+#include <QTouchEvent>
+#include <math.h>
+#include <cstdint>
+#include <fstream>
+#include <iostream>
 
 class GeometryEngine;
 
@@ -33,11 +35,9 @@ public:
     ~MainWidget();
 
 protected:
-    void mousePressEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
-
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-
-    void mouseReleaseEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
+    //void mousePressEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
+    //void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    //void mouseReleaseEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
     void timerEvent(QTimerEvent *e) Q_DECL_OVERRIDE;
     void initializeGL() Q_DECL_OVERRIDE;
     void resizeGL(int w, int h) Q_DECL_OVERRIDE;
@@ -47,7 +47,6 @@ protected:
     bool event(QEvent *event);
     void GLTexture3D(int width, int height, int depth);
     void BuildTexture(const char *ifile);
-    //QRect const getScreenSize();
 
 signals:
     void clicked();

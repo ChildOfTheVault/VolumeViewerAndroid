@@ -1,12 +1,6 @@
 #include "mainwidget.h"
 #include "mainsettings.h"
-#include <QMouseEvent>
-#include <QTouchEvent>
-#include <QOpenGLExtraFunctions>
-#include <math.h>
-#include <cstdint>
-#include <fstream>
-#include <iostream>
+
 
 typedef uint8_t BYTE;
 
@@ -29,108 +23,6 @@ MainWidget::~MainWidget()
     delete geometries;
     doneCurrent();
 }
-
-/*
-void MainWidget::mousePressEvent(QMouseEvent *e)
-{
-    // Save mouse press position
-    mousePressPosition = QVector2D(e->localPos());
-}
-
-void MainWidget::mouseReleaseEvent(QMouseEvent *e)
-{
-    // Mouse release position - mouse press position
-    QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
-
-    // Rotation axis is perpendicular to the mouse position difference
-    // vector
-    QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
-
-    // Accelerate angular speed relative to the length of the mouse sweep
-    qreal acc = diff.length() / 100.0;
-
-    // Calculate new rotation axis as weighted sum
-    rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
-
-    // Increase angular speed
-    angularSpeed += acc;
-}*/
-
-void MainWidget::mousePressEvent(QMouseEvent *event)
-{
-    splash->setVisible(false);
-
-    //QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
-    //QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-    //qDebug(touchPoints);
-    lastPos = event->pos();
-    if (event->x() < 220 && event->y() <= 220 ) {
-        qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
-        //MainSettings ms(this);
-        //ms.show();
-    update();
-    }
-    else if (event->x() < 220 && (event->y() > 220 && event->y() <= 440)) {
-        if (passIt == 1.0) {
-            passIt = 0.0;
-        }
-        else {
-            passIt = 1.0;
-        }
-        //MainSettings ms(this);
-        //ms.show();
-    update();
-    }
-    else if (event->x() < 220 && (event->y() > 440 && event->y() <= 660)) {
-        qDebug("Pressed settings");
-        if (toggleSettings == 1.0) {
-            loadfile->setVisible(true);
-            toggleSettings = 0.0;
-        }
-        else {
-            loadfile->setVisible(false);
-            toggleSettings = 1.0;
-        }
-        //MainSettings ms(this);
-        //ms.show();
-    update();
-    }
-    else if (event->x() < 220 && (event->y() > 660 && event->y() <= 880)) {
-        if (toggleFOV == 1.0) {
-            toggleFOV = 0.0;
-        }
-        else {
-            toggleFOV = 1.0;
-        }
-        scale = scale + 0.1;
-        //resizeGL(1920, 1080);
-        //MainSettings ms(this);
-        //ms.show();
-    update();
-    }
-}
-
-void MainWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    int dx = event->x() - lastPos.x();
-    int dy = event->y() - lastPos.y();
-
-    if (event->buttons() & Qt::LeftButton) {
-        rotateBy(8 * dy, 8 * dx, 0);
-    } else if (event->buttons() & Qt::RightButton) {
-        rotateBy(8 * dy, 0, 8 * dx);
-    }
-    lastPos = event->pos();
-}
-
-void MainWidget::mouseReleaseEvent(QMouseEvent * /* event */)
-{
-    emit clicked();
-}
-
-
-
-
 
 void MainWidget::rotateBy(int xAngle, int yAngle, int zAngle)
 {
@@ -316,9 +208,7 @@ bool MainWidget::event(QEvent *event)
              lastPos2 = touch1.lastPos();
              if (x < 220 && y <= 220 ) {
                  qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
-                 //MainSettings ms(this);
-                 //ms.show();
-             update();
+                 update();
              }
              else if (x < 220 && (y > 220 && y <= 440)) {
                  if (passIt == 1.0) {
@@ -327,8 +217,6 @@ bool MainWidget::event(QEvent *event)
                  else {
                      passIt = 1.0;
                  }
-                 //MainSettings ms(this);
-                 //ms.show();
              update();
              }
              else if (x < 220 && (y > 440 && y <= 660)) {
@@ -341,8 +229,6 @@ bool MainWidget::event(QEvent *event)
                      loadfile->setVisible(false);
                      toggleSettings = 1.0;
                  }
-                 //MainSettings ms(this);
-                 //ms.show();
              update();
              }
              else if (x < 220 && (y > 660 && y <= 880)) {
@@ -354,8 +240,6 @@ bool MainWidget::event(QEvent *event)
                  }
                  scale = scale + 0.1;
                  //resizeGL(1920, 1080);
-                 //MainSettings ms(this);
-                 //ms.show();
              update();
              }
          }
@@ -385,8 +269,6 @@ bool MainWidget::event(QEvent *event)
                  // if one of the fingers is released, remember the current scale
                  // factor so that adding another finger later will continue zooming
                  // by adding new scale factor to the existing remembered value.
-                 //totalScaleFactor *= currentScaleFactor;
-                 //currentScaleFactor = ((1-currentScaleFactor)/25)+1
                  if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
                     scale *= ((1-currentScaleFactor)/25)+1;
                     update();
@@ -403,27 +285,6 @@ bool MainWidget::event(QEvent *event)
      {
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-         /*
-         if (touchPoints.count() == 2) {
-             qDebug("TWO TOUCH");
-             // determine scale factor
-             const QTouchEvent::TouchPoint &touchPoint0 = touchPoints.first();
-             const QTouchEvent::TouchPoint &touchPoint1 = touchPoints.last();
-             qreal currentScaleFactor =
-                     QLineF(touchPoint0.pos(), touchPoint1.pos()).length()
-                     / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
-             if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
-                 // if one of the fingers is released, remember the current scale
-                 // factor so that adding another finger later will continue zooming
-                 // by adding new scale factor to the existing remembered value.
-                 //totalScaleFactor *= currentScaleFactor;
-                 scale *= currentScaleFactor;
-                 currentScaleFactor = 1;
-             }
-             //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
-                                             //totalScaleFactor * currentScaleFactor));
-         }
-         */
          return true;
      }
      default:
