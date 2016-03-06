@@ -59,161 +59,6 @@ void MainWidget::timerEvent(QTimerEvent *)
     }
 }
 
-
-void MainWidget::initializeGL()
-{
-
-    initializeOpenGLFunctions();
-
-    glClearColor(0, 0, 0, 1);
-
-    initShaders();
-    initTextures();
-
-    setAttribute(Qt::WA_AcceptTouchEvents);
-
-
-    // Enable depth buffer
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable back face culling
-    glEnable(GL_CULL_FACE);
-
-
-    geometries = new GeometryEngine;
-
-
-    // Use QBasicTimer because its faster than QTimer
-    timer.start(12, this);
-}
-
-
-void MainWidget::initShaders()
-{
-    // Compile vertex shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
-        close();
-
-    // Compile fragment shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
-        close();
-
-    // Link shader pipeline
-    if (!program.link())
-        close();
-
-    // Bind shader pipeline for use
-    if (!program.bind())
-        close();
-}
-
-
-void MainWidget::initTextures()
-{
-    // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
-    QFile file(":/parts/data_1");
-    if (!file.exists()) {
-        qDebug("FILE DOES NOT EXIST");
-        file.close();
-    }
-    else {
-        file.close();
-        BuildTexture();
-    }
-
-    scale = 1;
-}
-
-
-
-void MainWidget::resizeGL(int w, int h)
-{
-    // Calculate aspect ratio
-    qreal aspect = qreal(w) / qreal(h ? h : 1);
-
-    // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-    qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
-    /*if (toggleFOV == 1.0) {
-        zNear = 3.0;
-        zFar = 7.0;
-        fov = 20.0;
-    }*/
-
-
-    // Reset projection
-    projection.setToIdentity();
-
-    // Set perspective projection
-    projection.perspective(fov, aspect, zNear, zFar);
-}
-
-
-void MainWidget::paintGL()
-{
-    // Clear color and depth buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    texture->bind();
-
-
-    // Calculate model view transformation
-    QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -5.0);
-    matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
-    matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
-    matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
-    matrix.scale(scale,scale,scale);
-    //matrix.rotate(rotation);
-
-    // Set modelview-projection matrix
-    program.setUniformValue("mvp_matrix", projection * matrix);
-    program.setUniformValue("passIt", passIt);
-    //QMatrix4x4 test = (passIt, 0.0, 0.0, 0.0);
-    //program.setUniformValue("passIt", (passIt, 1.0, 1.0));
-
-
-    // Use texture unit 0 which contains cube.png
-    program.setUniformValue("texture", 0);
-    //glBindTexture(GL_TEXTURE_3D_OES, m_texture);
-
-
-    // Draw cube geometry
-    geometries->drawCubeGeometry(&program, passIt);
-
-    if (test != 1) {
-    QWidget *frame = new QWidget(this);
-    frame->setGeometry(20, 0, 200, 200);
-    frame->setStyleSheet("background-image: url(:/home.png)");
-
-    QWidget *frame2 = new QWidget(this);
-    frame2->setGeometry(20, 220, 200, 200);
-    frame2->setStyleSheet("background-image: url(:/right_arrow.png)");
-
-    QWidget *frame3 = new QWidget(this);
-    frame3->setGeometry(20, 440, 200, 200);
-    frame3->setStyleSheet("background-image: url(:/settings.png)");
-
-    QWidget *frame4 = new QWidget(this);
-    frame4->setGeometry(20, 660, 200, 200);
-    frame4->setStyleSheet("background-image: url(:/contour.png)");
-
-    //QWidget *loadfile = new QWidget(this);
-      loadfile = new QWidget(this);
-      loadfile->setGeometry(1600, 20, 180, 70);
-      loadfile->setStyleSheet("background-image: url(:/button.png)");
-
-      splash = new QWidget(this);
-      splash->setGeometry(0, 0, 1920, 1080);
-      splash->setStyleSheet("background-image: url(:/android/res/drawable-ldpi/logo.png)");
-
-      test = 1;
-    }
-}
-
 bool MainWidget::event(QEvent *event)
  {
      switch (event->type()) {
@@ -313,6 +158,156 @@ bool MainWidget::event(QEvent *event)
      }
      return QWidget::event(event);
  }
+
+void MainWidget::initializeGL()
+{
+
+    initializeOpenGLFunctions();
+
+    glClearColor(0, 0, 0, 1);
+
+    initShaders();
+    initTextures();
+
+    setAttribute(Qt::WA_AcceptTouchEvents);
+
+
+    // Enable depth buffer
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable back face culling
+    glEnable(GL_CULL_FACE);
+
+
+    geometries = new GeometryEngine;
+
+
+    // Use QBasicTimer because its faster than QTimer
+    timer.start(12, this);
+}
+
+void MainWidget::initShaders()
+{
+    // Compile vertex shader
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
+        close();
+
+    // Compile fragment shader
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
+        close();
+
+    // Link shader pipeline
+    if (!program.link())
+        close();
+
+    // Bind shader pipeline for use
+    if (!program.bind())
+        close();
+}
+
+void MainWidget::initTextures()
+{
+    // Load cube.png image
+    texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::Repeat);
+    QFile file(":/parts/data_1");
+    if (!file.exists()) {
+        qDebug("FILE DOES NOT EXIST");
+        file.close();
+    }
+    else {
+        file.close();
+        BuildTexture();
+    }
+
+    scale = 1;
+}
+
+void MainWidget::resizeGL(int w, int h)
+{
+    // Calculate aspect ratio
+    qreal aspect = qreal(w) / qreal(h ? h : 1);
+
+    // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
+    qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
+    /*if (toggleFOV == 1.0) {
+        zNear = 3.0;
+        zFar = 7.0;
+        fov = 20.0;
+    }*/
+
+
+    // Reset projection
+    projection.setToIdentity();
+
+    // Set perspective projection
+    projection.perspective(fov, aspect, zNear, zFar);
+}
+
+void MainWidget::paintGL()
+{
+    // Clear color and depth buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    texture->bind();
+
+
+    // Calculate model view transformation
+    QMatrix4x4 matrix;
+    matrix.translate(0.0, 0.0, -5.0);
+    matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
+    matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
+    matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
+    matrix.scale(scale,scale,scale);
+    //matrix.rotate(rotation);
+
+    // Set modelview-projection matrix
+    program.setUniformValue("mvp_matrix", projection * matrix);
+    program.setUniformValue("passIt", passIt);
+    //QMatrix4x4 test = (passIt, 0.0, 0.0, 0.0);
+    //program.setUniformValue("passIt", (passIt, 1.0, 1.0));
+
+
+    // Use texture unit 0 which contains cube.png
+    program.setUniformValue("texture", 0);
+    //glBindTexture(GL_TEXTURE_3D_OES, m_texture);
+
+
+    // Draw cube geometry
+    geometries->drawCubeGeometry(&program, passIt);
+
+    if (test != 1) {
+    QWidget *frame = new QWidget(this);
+    frame->setGeometry(20, 0, 200, 200);
+    frame->setStyleSheet("background-image: url(:/home.png)");
+
+    QWidget *frame2 = new QWidget(this);
+    frame2->setGeometry(20, 220, 200, 200);
+    frame2->setStyleSheet("background-image: url(:/right_arrow.png)");
+
+    QWidget *frame3 = new QWidget(this);
+    frame3->setGeometry(20, 440, 200, 200);
+    frame3->setStyleSheet("background-image: url(:/settings.png)");
+
+    QWidget *frame4 = new QWidget(this);
+    frame4->setGeometry(20, 660, 200, 200);
+    frame4->setStyleSheet("background-image: url(:/contour.png)");
+
+    //QWidget *loadfile = new QWidget(this);
+      loadfile = new QWidget(this);
+      loadfile->setGeometry(1600, 20, 180, 70);
+      loadfile->setStyleSheet("background-image: url(:/button.png)");
+
+      splash = new QWidget(this);
+      splash->setGeometry(0, 0, 1920, 1080);
+      splash->setStyleSheet("background-image: url(:/android/res/drawable-ldpi/logo.png)");
+
+      test = 1;
+    }
+}
+
 //BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
 //============================================================================//
 //                                 GLTexture3D                                //
@@ -362,48 +357,18 @@ void MainWidget::unbind()
     glDisable(GL_TEXTURE_3D_OES);
 }
 
-
-//void VolumeViewer::BuildTexture(const char *ifile)
 void MainWidget::BuildTexture()
 {
-    //int WIDTH = 100;
-    //int HEIGHT = 100;
-    //int DEPTH = 100;
-    //int BYTES_PER_TEXEL = 1;
     QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
-    //char str[20];
-    // VERY IMPORTANT:
-    // this line loads the address of the glTexImage3D function into the function pointer of the same name.
-    // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
-    // the environment the program is being run in MAY OR MAY NOT support it, if not we'll get back a NULL pointer.
-    // this is necessary to use any OpenGL function declared in the glext.h header file
-    // the Pointer to FunctioN ... PROC types are declared in the same header file with a type appropriate to the function name
 
-    //#ifdef WIN32
-        //PFNGLTEXIMAGE3DPROC glTexImage3D;
-        //glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
-    //#endif
-
-
-    // ask for enough memory for the texels and make sure we got it before proceeding
-    //m_acTexVol.add(1);
-    //m_acTexVol.last() = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
     if (m_acTexVol == NULL)
         return;
     short int r, s, t;
 
-    // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
-    // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
-    // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
-    // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
-    //FILE *pf = fopen("77-Oblique.dat", "r") ;
-    //std::filebuf buf();
-    //buf.open("77-Oblique.dat", std::ios_base.in);
-    //std::istream stream(&buf);
     char aiTemp[WIDTH * HEIGHT * DEPTH];
-    for (int i=1; i < 66; i++) {
+    for (int i=1; i <= 64; i++) {
         std::ostringstream temp;
         temp << i;
         const QString temp2 = QString::fromStdString(":/parts/data_" + temp.str());
@@ -416,16 +381,17 @@ void MainWidget::BuildTexture()
         in.readRawData(aiTemp, 1000000);
         file.close();
     }
-    //ifstream fin(ifile, ios::in | ios::binary);
-    //short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
-    //stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+    // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
+    // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
+    // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
+    // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
+
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
     double dScaledIntensity = 0.0;
     for (r = 0; r < DEPTH; r++) {
         for (s = WIDTH-1; s >= 0; s--) {
-        //<sandra>
         //for (s = 0; s < WIDTH; s++) {
             for (t = 0; t < HEIGHT; t++, iIndex++) {
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
@@ -441,9 +407,6 @@ void MainWidget::BuildTexture()
             }
         }
     }
-    //delete [] aiTemp;
-    //file.close();
-    //stream.close();
 
     // request 1 texture name from OpenGL
 /*
