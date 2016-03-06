@@ -207,20 +207,24 @@ void MainWidget::initShaders()
 
 void MainWidget::initTextures()
 {
-    // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
     QFile file(":/parts/data_1");
     if (!file.exists()) {
         qDebug("FILE DOES NOT EXIST");
+        // Load cube.png image
+        texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
         file.close();
     }
     else {
         file.close();
+        //pull out first layer of 3d data
         BuildTexture();
+        QImage layer1 = QImage((uchar*)m_acTexVol, WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        texture = new QOpenGLTexture(layer1);
     }
+
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::Repeat);
 
     scale = 1;
 }
@@ -312,7 +316,7 @@ void MainWidget::paintGL()
 //============================================================================//
 //                                 GLTexture3D                                //
 //============================================================================//
-
+/*
 void MainWidget::GLTexture3D(int width, int height, int depth)
 {
     //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return);
@@ -356,11 +360,12 @@ void MainWidget::unbind()
     glBindTexture(GL_TEXTURE_3D_OES, 0);
     glDisable(GL_TEXTURE_3D_OES);
 }
-
+*/
 void MainWidget::BuildTexture()
 {
     QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+    //											depth is 1 for first layer
+    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
 
     if (m_acTexVol == NULL)
         return;
@@ -406,6 +411,8 @@ void MainWidget::BuildTexture()
                 m_acTexVol[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
             }
         }
+        //depth of 1 for first layer
+        break;
     }
 
     // request 1 texture name from OpenGL
