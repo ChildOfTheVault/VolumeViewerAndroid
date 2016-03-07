@@ -4,8 +4,8 @@
 
 
 typedef uint8_t BYTE;
-#define WIDTH 100
-#define HEIGHT 100
+#define WIDTH 512
+#define HEIGHT 512
 #define DEPTH 100
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
@@ -224,7 +224,7 @@ void MainWidget::initTextures()
 
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
+    texture->setWrapMode(QOpenGLTexture::ClampToEdge);
 
     scale = 1;
 }
@@ -372,7 +372,8 @@ void MainWidget::BuildTexture()
     short int r, s, t;
 
 
-    char aiTemp[WIDTH * HEIGHT * DEPTH];
+    //short int aiTemp[WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL];
+    QByteArray blob;
     for (int i=1; i <= 64; i++) {
         std::ostringstream temp;
         temp << i;
@@ -382,9 +383,10 @@ void MainWidget::BuildTexture()
             qDebug("FILE DOES NOT EXIST");
         }
         file.open(QIODevice::ReadOnly);
-        QDataStream in(&file);
-        in.readRawData(aiTemp, 1000000);
+        blob = file.readAll();
         file.close();
+
+        break;
     }
     // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
     // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
@@ -398,10 +400,10 @@ void MainWidget::BuildTexture()
     for (r = 0; r < DEPTH; r++) {
         for (s = WIDTH-1; s >= 0; s--) {
         //for (s = 0; s < WIDTH; s++) {
-            for (t = 0; t < HEIGHT; t++, iIndex++) {
+            for (t = 0; t < HEIGHT; t++, iIndex+=2) {
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
                 //if (m_iWindowWidth <= 0)
-                    dScaledIntensity = (double)aiTemp[iIndex];
+                    dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
                 //else
                  //   dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
                 if (dScaledIntensity < 0.0)
