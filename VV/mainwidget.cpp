@@ -381,18 +381,20 @@ void MainWidget::BuildTexture()
         QFile file(temp2);
         if (!file.exists()) {
             qDebug("FILE DOES NOT EXIST");
+        } else {
+            file.open(QIODevice::ReadOnly);
+            blob.append(file.readAll());
         }
-        file.open(QIODevice::ReadOnly);
-        blob = file.readAll();
-        file.close();
 
-        break;
+        file.close();
     }
+
     // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
     // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
     // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
+    int thelayer = 50;
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
@@ -401,20 +403,27 @@ void MainWidget::BuildTexture()
         for (s = WIDTH-1; s >= 0; s--) {
         //for (s = 0; s < WIDTH; s++) {
             for (t = 0; t < HEIGHT; t++, iIndex+=2) {
+                //get last layer
+                if(r < thelayer){
+                    continue;
+                }
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
                 //if (m_iWindowWidth <= 0)
-                    dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
+                dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
                 //else
                  //   dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
                 if (dScaledIntensity < 0.0)
                     dScaledIntensity = 0.0;
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
-                m_acTexVol[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
+                //use 0 instead of r for just one layer
+                m_acTexVol[TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
             }
         }
         //depth of 1 for first layer
-        break;
+        if(r == thelayer){
+            break;
+        }
     }
 
     // request 1 texture name from OpenGL
