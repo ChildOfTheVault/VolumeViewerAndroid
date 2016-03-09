@@ -6,7 +6,7 @@
 typedef uint8_t BYTE;
 #define WIDTH 512
 #define HEIGHT 512
-#define DEPTH 100
+#define DEPTH 128
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
@@ -218,8 +218,22 @@ void MainWidget::initTextures()
         file.close();
         //pull out first layer of 3d data
         BuildTexture();
-        QImage layer1 = QImage((uchar*)m_acTexVol, WIDTH, HEIGHT, QImage::Format_Grayscale8);
-        texture = new QOpenGLTexture(layer1);
+
+        //QImage layer1 = QImage((uchar*)m_acTexVol, WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        //texture = new QOpenGLTexture(layer1);
+        texture = new QOpenGLTexture(QOpenGLTexture::Target3D);
+        //texture->BindingTarget=QOpenGLTexture::BindingTarget3D;
+        //texture->Feature=QOpenGLTexture::Texture3D;
+        //texture->TextureFormat=QOpenGLTexture::Red;
+        texture->setSize(WIDTH,HEIGHT,DEPTH);
+        texture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, (uchar*)m_acTexVol);
+        qDebug("Depth: %d", texture->depth());
+        qDebug("Width: %d", texture->width());
+        qDebug("Height: %d", texture->height());
+
+        //texture->PixelFormat=QOpenGLTexture::RGBA_Integer;
+        //texture->PixelType=QOpenGLTexture::UInt8;
+
     }
 
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
@@ -365,7 +379,7 @@ void MainWidget::BuildTexture()
 {
     QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
-    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
+    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
 
     if (m_acTexVol == NULL)
         return;
@@ -402,12 +416,12 @@ void MainWidget::BuildTexture()
     for (r = 0; r < DEPTH; r++) {
         for (s = WIDTH-1; s >= 0; s--) {
         //for (s = 0; s < WIDTH; s++) {
-            for (t = 0; t < HEIGHT; t++, iIndex+=2) {
+            //for (t = 0; t < HEIGHT; t++, iIndex+=2) {
                 //get last layer
-                if(r < thelayer){
-                    continue;
-                }
-            //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
+                //if(r < thelayer){
+                //    continue;
+                //}
+            for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
                 //if (m_iWindowWidth <= 0)
                 dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
                 //else
@@ -421,9 +435,9 @@ void MainWidget::BuildTexture()
             }
         }
         //depth of 1 for first layer
-        if(r == thelayer){
-            break;
-        }
+        //if(r == thelayer){
+        //    break;
+        //}
     }
 
     // request 1 texture name from OpenGL
