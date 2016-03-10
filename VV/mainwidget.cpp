@@ -6,7 +6,7 @@
 typedef uint8_t BYTE;
 #define WIDTH 512
 #define HEIGHT 512
-#define DEPTH 100
+#define DEPTH 128
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
@@ -17,7 +17,9 @@ MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     geometries(0),
     texture(0),
-    angularSpeed(0)
+    angularSpeed(0),
+    thelayer(20),
+    scale(1.0)
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -104,7 +106,9 @@ bool MainWidget::event(QEvent *event)
                  else {
                      toggleFOV = 1.0;
                  }
-                 scale = scale + 0.1;
+                 thelayer = thelayer + 5;
+                 initTextures();
+                 //scale = scale + 0.1;
                  //resizeGL(1920, 1080);
              update();
              }
@@ -226,7 +230,7 @@ void MainWidget::initTextures()
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     texture->setWrapMode(QOpenGLTexture::ClampToEdge);
 
-    scale = 1;
+    //scale = 1;
 }
 
 void MainWidget::resizeGL(int w, int h)
@@ -363,7 +367,7 @@ void MainWidget::unbind()
 */
 void MainWidget::BuildTexture()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
     m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
 
@@ -394,7 +398,6 @@ void MainWidget::BuildTexture()
     // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
-    int thelayer = 50;
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;

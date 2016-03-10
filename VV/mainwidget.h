@@ -86,6 +86,7 @@ private:
     float scale;
     qreal totalScaleFactor;
     BYTE* m_acTexVol;
+    int thelayer;
 };
 
 
