@@ -377,7 +377,7 @@ void MainWidget::unbind()
 */
 void MainWidget::BuildTexture()
 {
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
     m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
 
@@ -408,7 +408,7 @@ void MainWidget::BuildTexture()
     // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
-    int thelayer = 50;
+    //int thelayer = 50;
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
@@ -431,7 +431,7 @@ void MainWidget::BuildTexture()
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
                 //use 0 instead of r for just one layer
-                m_acTexVol[TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
+                m_acTexVol[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
             }
         }
         //depth of 1 for first layer

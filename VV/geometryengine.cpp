@@ -48,7 +48,7 @@ void GeometryEngine::initCubeGeometry()
         {QVector3D( 1.0f,  1.0f,  1.0f), QVector2D(0.33f, 0.5f)} // v3
         */
         {QVector3D(-1.0f, -1.0f,  1.0f), QVector3D(0.0f, 0.0f, 1.0f)},  // v0
-        {QVector3D( 1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.0f, 1.0f)}, // v1
+        {QVector3D( 1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.5f, 1.0f)}, // v1
         {QVector3D(-1.0f,  1.0f,  1.0f), QVector3D(0.0f, 1.0f, 1.0f)},  // v2
         {QVector3D( 1.0f,  1.0f,  1.0f), QVector3D(1.0f, 1.0f, 1.0f)}, // v3
 
@@ -102,7 +102,7 @@ void GeometryEngine::initCubeGeometry()
 
     // Transfer vertex data to VBO 0
     arrayBuf.bind();
-    arrayBuf.allocate(vertices, 34 * sizeof(VertexData));
+    arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
 
     // Transfer index data to VBO 1
     indexBuf.bind();
@@ -229,14 +229,14 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1
     // Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
     int texcoordLocation = program->attributeLocation("a_texcoord");
     program->enableAttributeArray(texcoordLocation);
-    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
     // Draw cube geometry using indices from VBO 1
     //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
 
     //arrayBuf2.bind();
     if (option1 == 0)
-    glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLE_STRIP, 24, GL_UNSIGNED_SHORT, 0);
     else
     glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
     //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);

@@ -10,23 +10,23 @@ uniform mat4 mvp_matrix;
 uniform float passIt;
 
 attribute vec4 a_position;
-attribute vec3 a_texcoord;
+attribute vec4 a_texcoord;
 
-varying vec3 v_texcoord;
+out vec4 v_texcoord;
 
 
 //varying vec3 lightDir,normal;
 
-varying vec3 vViewPosition;
-varying float passIt2;
+//varying vec3 vViewPosition;
+out float passIt2;
 
-varying vec4 v_Color;
+//varying vec4 v_Color;
 
 //! [0]
 void main()
 {
     passIt2 = passIt;
-    vViewPosition = a_position.xyz;
+    //vViewPosition = a_position.xyz;
 
     // Calculate vertex position in screen space
     gl_Position = mvp_matrix * a_position;

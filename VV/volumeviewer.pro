@@ -1,6 +1,6 @@
 QT       += core gui widgets
 
-TARGET = VolumeViewer
+TARGET = VolumeViewer3
 TEMPLATE = app
 
 SOURCES += main.cpp \

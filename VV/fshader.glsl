@@ -7,15 +7,15 @@ precision mediump float;
 #endif
 
 
-uniform sampler3D texture;
+uniform sampler3D atexture;
 
-varying vec3 lightDir,normal;
+//in vec3 lightDir,normal;
 
-varying vec3 vViewPosition;
-varying float passIt2;
+//in vec3 vViewPosition;
+in float passIt2;
 
-varying vec3 v_texcoord;
-
+in vec4 v_texcoord;
+out vec4 FragColor;
 
 //! [0]
 void main()
@@ -23,10 +23,10 @@ void main()
 
     if (passIt2 == 0.0) {
         //gl_FragColor = vec4(vViewPosition, 1.0);
-        gl_FragColor = texture3D(texture, v_texcoord);
+        FragColor = texture(atexture, v_texcoord.xyz);
     }
     else {
-        gl_FragColor = vec4(1.0, 0.72, 0.78, 1.0);
+        FragColor = vec4(1.0, 0.72, 0.78, 1.0);
     }
 }
 //! [0]
