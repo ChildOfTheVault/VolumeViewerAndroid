@@ -81,9 +81,17 @@ bool MainWidget::event(QEvent *event)
              else if (x < 220 && (y > 220 && y <= 440)) {
                  if (passIt == 1.0) {
                      passIt = 0.0;
+                     passLock = 0.0;
+                 }
+                 else if (passIt == 2.0) {
+                     passIt = 1.0;
+                     passLock = 0.0;
+                     scale = 1.0;
                  }
                  else {
-                     passIt = 1.0;
+                     passIt = 2.0;
+                     passLock = 1.0;
+                     scale = 1.5;
                  }
              update();
              }
@@ -119,13 +127,15 @@ bool MainWidget::event(QEvent *event)
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
          if (touchPoints.count() == 1) {
-             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
-            qreal x = touch1.pos().x();
-            qreal y = touch1.pos().y();
-            int dx = x - lastPos2.x();
-            int dy = y - lastPos2.y();
-            rotateBy(8 * dy, 8 * dx, 0);
-            lastPos2 = touch1.pos();
+            if (passLock != 1.0) {
+                const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+                qreal x = touch1.pos().x();
+                qreal y = touch1.pos().y();
+                int dx = x - lastPos2.x();
+                int dy = y - lastPos2.y();
+                rotateBy(8 * dy, 8 * dx, 0);
+                lastPos2 = touch1.pos();
+            }
          }
          if (touchPoints.count() == 2) {
              // determine scale factor
@@ -139,9 +149,24 @@ bool MainWidget::event(QEvent *event)
                  // if one of the fingers is released, remember the current scale
                  // factor so that adding another finger later will continue zooming
                  // by adding new scale factor to the existing remembered value.
-                 if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
-                    scale *= ((1-currentScaleFactor)/25)+1;
-                    update();
+                 if (passLock != 1.0) {
+                    if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
+                        scale *= ((1-currentScaleFactor)/25)+1;
+                        update();
+                    }
+                 }
+                 else {
+                     //if ((thelayer < 250 && currentScaleFactor < 1) || (thelayer > 0 && currentScaleFactor > 1)) {
+                     //if ((thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) < 250 && (thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) > 0) {
+                        if (currentScaleFactor > 1 && thelayer < 127)
+                            thelayer++;
+                        //double thescale= ((1-currentScaleFactor)/25)+1;
+                        //thelayer = thelayer + (thescale * 3);
+                        if (currentScaleFactor < 1 && thelayer > 0)
+                            thelayer--;
+                        initTextures();
+                        update();
+
                  }
                  currentScaleFactor = 1;
                  lastPos2 = touchPoint0.pos();

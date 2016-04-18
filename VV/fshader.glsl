@@ -18,7 +18,7 @@ varying vec2 v_texcoord;
 void main()
 {
 
-    if (passIt2 == 0.0) {
+    if (passIt2 == 0.0 || passIt2 == 2.0) {
         //gl_FragColor = vec4(vViewPosition, 1.0);
         gl_FragColor = texture2D(texture, v_texcoord);
     }

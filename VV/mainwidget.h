@@ -78,6 +78,7 @@ private:
     int yRot;
     int zRot;
     float passIt;
+    float passLock;
     float toggleFOV;
     float toggleSettings;
     QWidget *loadfile;
