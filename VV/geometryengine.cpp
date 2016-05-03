@@ -257,9 +257,11 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program, int option1
     //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
 
     //arrayBuf2.bind();
-    if (option1 == 0 || option1 == 2)
-    glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
-    else
-    glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
-    //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
+    if (option1 == 0 || option1 == 2) {
+        glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+    }
+    else {
+        glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
+    }
+        //glDrawElements(GL_LINES, 34, GL_UNSIGNED_SHORT, 0);
 }

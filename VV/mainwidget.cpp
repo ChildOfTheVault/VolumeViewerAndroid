@@ -79,20 +79,28 @@ bool MainWidget::event(QEvent *event)
                  update();
              }
              else if (x < 220 && (y > 220 && y <= 440)) {
-                 if (passIt == 1.0) {
-                     passIt = 0.0;
+                 if (passIt == 0.0) {
+                     passIt = 1.0;
+                     scale = 1;
                      passLock = 0.0;
                  }
-                 else if (passIt == 2.0) {
+                 else {
+                     passIt = 0.0;
+                     passLock = 1.0;
+                     if (zoom_toggle == 0) {
+                        scale = 1;
+                        zoom_toggle = 1;
+                     }
+                     else {
+                        scale = 1.5;
+                        zoom_toggle = 0;
+                     }
+                 }
+                 /*else {
                      passIt = 1.0;
                      passLock = 0.0;
                      scale = 1.0;
-                 }
-                 else {
-                     passIt = 2.0;
-                     passLock = 1.0;
-                     scale = 1.5;
-                 }
+                 }*/
              update();
              }
              else if (x < 220 && (y > 440 && y <= 660)) {

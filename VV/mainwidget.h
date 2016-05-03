@@ -87,6 +87,7 @@ private:
     float scale;
     qreal totalScaleFactor;
     BYTE* m_acTexVol;
+    int zoom_toggle;
     int thelayer;
 };
 
