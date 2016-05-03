@@ -75,7 +75,15 @@ bool MainWidget::event(QEvent *event)
              qreal y = touch1.pos().y();
              lastPos2 = touch1.lastPos();
              if (x < 220 && y <= 220 ) {
-                 qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
+                 //qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
+                 qDebug("%d\t%d\t%d\n",xRot, yRot, zRot);
+                 xRot = 0;
+                 yRot = 24;
+                 zRot = 0;
+                 passIt = 0.0;
+                 passLock = 1.0;
+                 scale = 1.5;
+                 zoom_toggle = 0;
                  update();
              }
              else if (x < 220 && (y > 220 && y <= 440)) {
@@ -86,12 +94,14 @@ bool MainWidget::event(QEvent *event)
                  }
                  else {
                      passIt = 0.0;
-                     passLock = 1.0;
+                     //passLock = 1.0;
                      if (zoom_toggle == 0) {
+                        passLock = 0.0;
                         scale = 1;
                         zoom_toggle = 1;
                      }
                      else {
+                        passLock = 1.0;
                         scale = 1.5;
                         zoom_toggle = 0;
                      }
