@@ -25,6 +25,10 @@
 
 typedef uint8_t BYTE;
 
+#define WIDTH 512
+#define HEIGHT 512
+#define DEPTH 128
+
 class GeometryEngine;
 
 class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -86,8 +90,11 @@ private:
     int test;
     float scale;
     qreal totalScaleFactor;
-    BYTE* m_acTexVol;
+    BYTE** m_acTexVol;
     int zoom_toggle;
+    float scale_layer;
+    int only_build_once;
+    QImage *the_layers;
     int thelayer;
 };
 

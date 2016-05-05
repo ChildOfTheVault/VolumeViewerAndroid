@@ -4,14 +4,15 @@
 
 
 typedef uint8_t BYTE;
-#define WIDTH 512
-#define HEIGHT 512
-#define DEPTH 128
+//#define WIDTH 512
+//#define HEIGHT 512
+//#define DEPTH 128
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
 #define TEXEL3(s, t, r) (TEXEL2(s, t) + LAYER(r))					// 3->1 dimension mapping function
 
+//QOpenGLTexture the_layers[DEPTH];
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
@@ -19,7 +20,9 @@ MainWidget::MainWidget(QWidget *parent) :
     texture(0),
     angularSpeed(0),
     thelayer(20),
-    scale(1.0)
+    scale(1.0),
+    scale_layer(0.15625),
+    only_build_once(0)
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -133,6 +136,7 @@ bool MainWidget::event(QEvent *event)
                      toggleFOV = 1.0;
                  }
                  thelayer = thelayer + 5;
+                 scale_layer = scale_layer + 0.0390625;
                  initTextures();
                  //scale = scale + 0.1;
                  //resizeGL(1920, 1080);
@@ -176,12 +180,16 @@ bool MainWidget::event(QEvent *event)
                  else {
                      //if ((thelayer < 250 && currentScaleFactor < 1) || (thelayer > 0 && currentScaleFactor > 1)) {
                      //if ((thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) < 250 && (thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) > 0) {
-                        if (currentScaleFactor > 1 && thelayer < 127)
+                        if (currentScaleFactor > 1 && thelayer < 127) {
                             thelayer++;
+                            scale_layer += 0.0078125;
+                        }
                         //double thescale= ((1-currentScaleFactor)/25)+1;
                         //thelayer = thelayer + (thescale * 3);
-                        if (currentScaleFactor < 1 && thelayer > 0)
+                        if (currentScaleFactor < 1 && thelayer > 0) {
                             thelayer--;
+                            scale_layer -= 0.0078125;
+                        }
                         initTextures();
                         update();
 
@@ -264,9 +272,18 @@ void MainWidget::initTextures()
     else {
         file.close();
         //pull out first layer of 3d data
-        BuildTexture();
-        QImage layer1 = QImage((uchar*)m_acTexVol, WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        if (only_build_once == 0) {
+            BuildTexture();
+            only_build_once = 1;
+            //the_layers = (QImage*) calloc(DEPTH, sizeof(QImage));
+            //for (int o; o < DEPTH; o++) {
+                //the_layers[o] = QImage((uchar*)m_acTexVol[o], WIDTH, HEIGHT, QImage::Format_Grayscale8);
+                //the_layers[o] = QOpenGLTexture(q1);
+            //}
+        }
+        QImage layer1 = QImage((uchar*)m_acTexVol[thelayer], WIDTH, HEIGHT, QImage::Format_Grayscale8);
         texture = new QOpenGLTexture(layer1);
+        //texture = new QOpenGLTexture(the_layers[thelayer]);
     }
 
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
@@ -311,7 +328,10 @@ void MainWidget::paintGL()
     matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
     matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
     matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
-    matrix.scale(scale,scale,scale);
+    double temp_s = scale*scale_layer;
+    //printf("scale: %lf \t", temp_s);
+    //qDebug("scale: %lf \t", temp_s);
+    matrix.scale(scale,scale,temp_s);
     //matrix.rotate(rotation);
 
     // Set modelview-projection matrix
@@ -412,10 +432,16 @@ void MainWidget::BuildTexture()
 {
     //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
-    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
-
+    int cols = WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL;
+    int rows = DEPTH;
+    //for (int i = 0; i < DEPTH; i++) {
+    //    m_acTexVol[i] = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
+    //}
+    m_acTexVol = (BYTE **) calloc(rows, sizeof(BYTE *));
+    for(unsigned int i = 0; i < rows; i++)
+        m_acTexVol[i] = (BYTE *) calloc(cols, sizeof(BYTE));
     if (m_acTexVol == NULL)
-        return;
+        printf("NULL!");
     short int r, s, t;
 
 
@@ -450,9 +476,9 @@ void MainWidget::BuildTexture()
         //for (s = 0; s < WIDTH; s++) {
             for (t = 0; t < HEIGHT; t++, iIndex+=2) {
                 //get last layer
-                if(r < thelayer){
-                    continue;
-                }
+                //if(r < thelayer){
+                //    continue;
+                //}
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
                 //if (m_iWindowWidth <= 0)
                 dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
@@ -463,13 +489,13 @@ void MainWidget::BuildTexture()
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
                 //use 0 instead of r for just one layer
-                m_acTexVol[TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
+                m_acTexVol[r][TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
             }
         }
         //depth of 1 for first layer
-        if(r == thelayer){
-            break;
-        }
+        //if(r == thelayer){
+        //    break;
+        //}
     }
 
     // request 1 texture name from OpenGL
