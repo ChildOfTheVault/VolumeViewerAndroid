@@ -453,7 +453,7 @@ void MainWidget::BuildTexture()
     //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
     int cols = WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL;
-    int rows = DEPTH;
+    unsigned int rows = DEPTH;
     //for (int i = 0; i < DEPTH; i++) {
     //    m_acTexVol[i] = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
     //}
