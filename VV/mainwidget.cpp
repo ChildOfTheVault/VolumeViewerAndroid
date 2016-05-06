@@ -4,20 +4,25 @@
 
 
 typedef uint8_t BYTE;
-#define WIDTH 100
-#define HEIGHT 100
-#define DEPTH 100
+//#define WIDTH 512
+//#define HEIGHT 512
+//#define DEPTH 128
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
 #define TEXEL3(s, t, r) (TEXEL2(s, t) + LAYER(r))					// 3->1 dimension mapping function
 
+//QOpenGLTexture the_layers[DEPTH];
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     geometries(0),
     texture(0),
-    angularSpeed(0)
+    angularSpeed(0),
+    thelayer(20),
+    scale(1.0),
+    scale_layer(0.15625),
+    only_build_once(0)
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -59,6 +64,175 @@ void MainWidget::timerEvent(QTimerEvent *)
     }
 }
 
+// direction -> true for up, false for down
+// numSlices -> max # of slices to move up/down, default = 5
+void MainWidget::moveCurrSlice(bool direction, int numSlices){
+    int dirMult = direction ? 1 : -1;
+    int layersWanted = dirMult * numSlices;
+    int layerIfMoved = thelayer + layersWanted;
+    int layersToMove = 0;
+
+    if (toggleFOV == 1.0) {
+        toggleFOV = 0.0;
+    }
+    else {
+        toggleFOV = 1.0;
+    }
+
+    if(layerIfMoved < DEPTH && layerIfMoved >= 0){
+        layersToMove = layersWanted;
+    } else if(layerIfMoved >= DEPTH){
+        layersToMove = (DEPTH - 1) - thelayer;
+    } else if(layerIfMoved < 0){
+        layersToMove = -1 * thelayer;
+    }
+
+    if(layersToMove != 0){
+        thelayer += layersToMove;
+    }
+    if(thelayer >= DEPTH){
+        thelayer = DEPTH - 1;
+    } else if(thelayer < 0){
+        thelayer = 0;
+    }
+
+    initTextures();
+    //scale_layer = 0.15625 + thelayer * 0.0390625;
+    //scale = scale + 0.1;
+    //resizeGL(1920, 1080);
+}
+
+bool MainWidget::event(QEvent *event)
+ {
+     switch (event->type()) {
+     case QEvent::TouchBegin:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         splash->setVisible(false);
+         if (touchPoints.count() == 1) {
+             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+             qreal x = touch1.pos().x();
+             qreal y = touch1.pos().y();
+             lastPos2 = touch1.lastPos();
+             if (x < 220 && y <= 220 ) {
+                 //qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
+                 qDebug("%d\t%d\t%d\n",xRot, yRot, zRot);
+                 xRot = 0;
+                 yRot = 24;
+                 zRot = 0;
+                 passIt = 0.0;
+                 passLock = 1.0;
+                 scale = 1.5;
+                 zoom_toggle = 0;
+                 update();
+             }
+             else if (x < 220 && (y > 220 && y <= 440)) {
+                 if (passIt == 0.0) {
+                     passIt = 1.0;
+                     scale = 1;
+                     passLock = 0.0;
+                 }
+                 else {
+                     passIt = 0.0;
+                     //passLock = 1.0;
+                     if (zoom_toggle == 0) {
+                        passLock = 0.0;
+                        scale = 1;
+                        zoom_toggle = 1;
+                     }
+                     else {
+                        passLock = 1.0;
+                        scale = 1.5;
+                        zoom_toggle = 0;
+                     }
+                 }
+                 /*else {
+                     passIt = 1.0;
+                     passLock = 0.0;
+                     scale = 1.0;
+                 }*/
+             update();
+             }
+             else if (x < 220 && (y > 440 && y <= 660)) {
+                 moveCurrSlice(false);
+                 update();
+             }
+             else if (x < 220 && (y > 660 && y <= 880)) {
+                 moveCurrSlice(true);
+                 update();
+             }
+         }
+     }
+     case QEvent::TouchUpdate:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         if (touchPoints.count() == 1) {
+            if (passLock != 1.0) {
+                const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+                qreal x = touch1.pos().x();
+                qreal y = touch1.pos().y();
+                int dx = x - lastPos2.x();
+                int dy = y - lastPos2.y();
+                rotateBy(8 * dy, 8 * dx, 0);
+                lastPos2 = touch1.pos();
+            }
+         }
+         if (touchPoints.count() == 2) {
+             // determine scale factor
+             const QTouchEvent::TouchPoint &touchPoint0 = touchPoints.first();
+             const QTouchEvent::TouchPoint &touchPoint1 = touchPoints.last();
+             qreal currentScaleFactor =
+                     QLineF(touchPoint0.pos(), touchPoint1.pos()).length()
+                     / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
+             //if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
+             if ((lastPos2 != touchPoint0.pos() && lastPos3 != touchPoint1.pos())) {
+                 // if one of the fingers is released, remember the current scale
+                 // factor so that adding another finger later will continue zooming
+                 // by adding new scale factor to the existing remembered value.
+                 if (passLock != 1.0) {
+                    if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
+                        scale *= ((1-currentScaleFactor)/25)+1;
+                        update();
+                    }
+                 }
+                 else {
+                     //if ((thelayer < 250 && currentScaleFactor < 1) || (thelayer > 0 && currentScaleFactor > 1)) {
+                     //if ((thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) < 250 && (thelayer + ((((1-currentScaleFactor)/25)+1) * 3)) > 0) {
+                        if (currentScaleFactor > 1 && thelayer < 127) {
+                            thelayer++;
+                            scale_layer += 0.0078125;
+                        }
+                        //double thescale= ((1-currentScaleFactor)/25)+1;
+                        //thelayer = thelayer + (thescale * 3);
+                        if (currentScaleFactor < 1 && thelayer > 0) {
+                            thelayer--;
+                            scale_layer -= 0.0078125;
+                        }
+                        initTextures();
+                        update();
+
+                 }
+                 currentScaleFactor = 1;
+                 lastPos2 = touchPoint0.pos();
+                 lastPos3 = touchPoint1.pos();
+             }
+             //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
+                                             //totalScaleFactor * currentScaleFactor));
+         }
+     }
+     case QEvent::TouchEnd:
+     {
+         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
+         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         return true;
+     }
+     default:
+         break;
+     }
+     return QWidget::event(event);
+ }
 
 void MainWidget::initializeGL()
 {
@@ -87,7 +261,6 @@ void MainWidget::initializeGL()
     timer.start(12, this);
 }
 
-
 void MainWidget::initShaders()
 {
     // Compile vertex shader
@@ -107,28 +280,38 @@ void MainWidget::initShaders()
         close();
 }
 
-
 void MainWidget::initTextures()
 {
-    // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
     QFile file(":/parts/data_1");
     if (!file.exists()) {
         qDebug("FILE DOES NOT EXIST");
+        // Load cube.png image
+        texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
         file.close();
     }
     else {
         file.close();
-        BuildTexture();
+        //pull out first layer of 3d data
+        if (only_build_once == 0) {
+            BuildTexture();
+            only_build_once = 1;
+            //the_layers = (QImage*) calloc(DEPTH, sizeof(QImage));
+            //for (int o; o < DEPTH; o++) {
+                //the_layers[o] = QImage((uchar*)m_acTexVol[o], WIDTH, HEIGHT, QImage::Format_Grayscale8);
+                //the_layers[o] = QOpenGLTexture(q1);
+            //}
+        }
+        QImage layer1 = QImage((uchar*)m_acTexVol[thelayer], WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        texture = new QOpenGLTexture(layer1);
+        //texture = new QOpenGLTexture(the_layers[thelayer]);
     }
 
-    scale = 1;
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::ClampToEdge);
+
+    //scale = 1;
 }
-
-
 
 void MainWidget::resizeGL(int w, int h)
 {
@@ -151,7 +334,6 @@ void MainWidget::resizeGL(int w, int h)
     projection.perspective(fov, aspect, zNear, zFar);
 }
 
-
 void MainWidget::paintGL()
 {
     // Clear color and depth buffer
@@ -166,7 +348,10 @@ void MainWidget::paintGL()
     matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
     matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
     matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
-    matrix.scale(scale,scale,scale);
+    double temp_s = scale*scale_layer;
+    //printf("scale: %lf \t", temp_s);
+    //qDebug("scale: %lf \t", temp_s);
+    matrix.scale(scale,scale,temp_s);
     //matrix.rotate(rotation);
 
     // Set modelview-projection matrix
@@ -214,110 +399,11 @@ void MainWidget::paintGL()
     }
 }
 
-bool MainWidget::event(QEvent *event)
- {
-     switch (event->type()) {
-     case QEvent::TouchBegin:
-     {
-         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
-         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-         splash->setVisible(false);
-         if (touchPoints.count() == 1) {
-             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
-             qreal x = touch1.pos().x();
-             qreal y = touch1.pos().y();
-             lastPos2 = touch1.lastPos();
-             if (x < 220 && y <= 220 ) {
-                 qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
-                 update();
-             }
-             else if (x < 220 && (y > 220 && y <= 440)) {
-                 if (passIt == 1.0) {
-                     passIt = 0.0;
-                 }
-                 else {
-                     passIt = 1.0;
-                 }
-             update();
-             }
-             else if (x < 220 && (y > 440 && y <= 660)) {
-                 qDebug("Pressed settings");
-                 if (toggleSettings == 1.0) {
-                     loadfile->setVisible(true);
-                     toggleSettings = 0.0;
-                 }
-                 else {
-                     loadfile->setVisible(false);
-                     toggleSettings = 1.0;
-                 }
-             update();
-             }
-             else if (x < 220 && (y > 660 && y <= 880)) {
-                 if (toggleFOV == 1.0) {
-                     toggleFOV = 0.0;
-                 }
-                 else {
-                     toggleFOV = 1.0;
-                 }
-                 scale = scale + 0.1;
-                 //resizeGL(1920, 1080);
-             update();
-             }
-         }
-     }
-     case QEvent::TouchUpdate:
-     {
-         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
-         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-         if (touchPoints.count() == 1) {
-             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
-            qreal x = touch1.pos().x();
-            qreal y = touch1.pos().y();
-            int dx = x - lastPos2.x();
-            int dy = y - lastPos2.y();
-            rotateBy(8 * dy, 8 * dx, 0);
-            lastPos2 = touch1.pos();
-         }
-         if (touchPoints.count() == 2) {
-             // determine scale factor
-             const QTouchEvent::TouchPoint &touchPoint0 = touchPoints.first();
-             const QTouchEvent::TouchPoint &touchPoint1 = touchPoints.last();
-             qreal currentScaleFactor =
-                     QLineF(touchPoint0.pos(), touchPoint1.pos()).length()
-                     / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
-             //if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
-             if ((lastPos2 != touchPoint0.pos() && lastPos3 != touchPoint1.pos())) {
-                 // if one of the fingers is released, remember the current scale
-                 // factor so that adding another finger later will continue zooming
-                 // by adding new scale factor to the existing remembered value.
-                 if ((scale < 3.0 && currentScaleFactor < 1) || (scale > 0.4 && currentScaleFactor > 1)) {
-                    scale *= ((1-currentScaleFactor)/25)+1;
-                    update();
-                 }
-                 currentScaleFactor = 1;
-                 lastPos2 = touchPoint0.pos();
-                 lastPos3 = touchPoint1.pos();
-             }
-             //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
-                                             //totalScaleFactor * currentScaleFactor));
-         }
-     }
-     case QEvent::TouchEnd:
-     {
-         QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
-         QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-         return true;
-     }
-     default:
-         break;
-     }
-     return QWidget::event(event);
- }
 //BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
 //============================================================================//
 //                                 GLTexture3D                                //
 //============================================================================//
-
+/*
 void MainWidget::GLTexture3D(int width, int height, int depth)
 {
     //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return);
@@ -361,89 +447,76 @@ void MainWidget::unbind()
     glBindTexture(GL_TEXTURE_3D_OES, 0);
     glDisable(GL_TEXTURE_3D_OES);
 }
-
-
-//void VolumeViewer::BuildTexture(const char *ifile)
+*/
 void MainWidget::BuildTexture()
 {
-    //int WIDTH = 100;
-    //int HEIGHT = 100;
-    //int DEPTH = 100;
-    //int BYTES_PER_TEXEL = 1;
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    m_acTexVol = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
-    //char str[20];
-    // VERY IMPORTANT:
-    // this line loads the address of the glTexImage3D function into the function pointer of the same name.
-    // glTexImage3D is not implemented in the standard GL libraries and must be loaded dynamically at run time,
-    // the environment the program is being run in MAY OR MAY NOT support it, if not we'll get back a NULL pointer.
-    // this is necessary to use any OpenGL function declared in the glext.h header file
-    // the Pointer to FunctioN ... PROC types are declared in the same header file with a type appropriate to the function name
-
-    //#ifdef WIN32
-        //PFNGLTEXIMAGE3DPROC glTexImage3D;
-        //glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
-    //#endif
-
-
-    // ask for enough memory for the texels and make sure we got it before proceeding
-    //m_acTexVol.add(1);
-    //m_acTexVol.last() = (BYTE *)malloc(WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL);
+    //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+    //											depth is 1 for first layer
+    int cols = WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL;
+    int rows = DEPTH;
+    //for (int i = 0; i < DEPTH; i++) {
+    //    m_acTexVol[i] = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
+    //}
+    m_acTexVol = (BYTE **) calloc(rows, sizeof(BYTE *));
+    for(unsigned int i = 0; i < rows; i++)
+        m_acTexVol[i] = (BYTE *) calloc(cols, sizeof(BYTE));
     if (m_acTexVol == NULL)
-        return;
+        printf("NULL!");
     short int r, s, t;
 
-    // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
-    // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
-    // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
-    // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
-    //FILE *pf = fopen("77-Oblique.dat", "r") ;
-    //std::filebuf buf();
-    //buf.open("77-Oblique.dat", std::ios_base.in);
-    //std::istream stream(&buf);
-    char aiTemp[WIDTH * HEIGHT * DEPTH];
-    for (int i=1; i < 66; i++) {
+    //short int aiTemp[WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL];
+    QByteArray blob;
+    for (int i=1; i <= 64; i++) {
         std::ostringstream temp;
         temp << i;
         const QString temp2 = QString::fromStdString(":/parts/data_" + temp.str());
         QFile file(temp2);
         if (!file.exists()) {
             qDebug("FILE DOES NOT EXIST");
+        } else {
+            file.open(QIODevice::ReadOnly);
+            blob.append(file.readAll());
         }
-        file.open(QIODevice::ReadOnly);
-        QDataStream in(&file);
-        in.readRawData(aiTemp, 1000000);
+
         file.close();
     }
-    //ifstream fin(ifile, ios::in | ios::binary);
-    //short int * aiTemp = new short int[ WIDTH * HEIGHT * DEPTH ];
-    //stream.read((char*) aiTemp, WIDTH * HEIGHT * DEPTH * sizeof(short int));
+
+    // each of the following loops defines one layer of our 3d texture, there are 3 unsigned bytes (red, green, blue) for each texel so each iteration sets 3 bytes
+    // the memory pointed to by texels is technically a single dimension (C++ won't allow more than one dimension to be of variable length), the
+    // work around is to use a mapping function like the one above that maps the 3 coordinates onto one dimension
+    // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
+
     int iIndex = 0;
     //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
     double dScaledIntensity = 0.0;
     for (r = 0; r < DEPTH; r++) {
         for (s = WIDTH-1; s >= 0; s--) {
-        //<sandra>
         //for (s = 0; s < WIDTH; s++) {
-            for (t = 0; t < HEIGHT; t++, iIndex++) {
+            for (t = 0; t < HEIGHT; t++, iIndex+=2) {
+                //get last layer
+                //if(r < thelayer){
+                //    continue;
+                //}
             //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
                 //if (m_iWindowWidth <= 0)
-                    dScaledIntensity = (double)aiTemp[iIndex];
+                dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
                 //else
                  //   dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
                 if (dScaledIntensity < 0.0)
                     dScaledIntensity = 0.0;
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
-                m_acTexVol[TEXEL3(s, t, r)] = (BYTE)dScaledIntensity;
+                //use 0 instead of r for just one layer
+                m_acTexVol[r][TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
             }
         }
+        //depth of 1 for first layer
+        //if(r == thelayer){
+        //    break;
+        //}
     }
-    //delete [] aiTemp;
-    //file.close();
-    //stream.close();
 
     // request 1 texture name from OpenGL
 /*

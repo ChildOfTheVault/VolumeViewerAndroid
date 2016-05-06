@@ -1,1 +1,9 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/">
+        <file>parts/data_10</file>
+        <file>parts/data_22</file>
+        <file>parts/data_34</file>
+        <file>parts/data_46</file>
+        <file>parts/data_58</file>
+    </qresource>
+</RCC>

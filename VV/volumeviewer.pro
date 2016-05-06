@@ -23,7 +23,10 @@ RESOURCES += \
     data3.qrc \
     data4.qrc \
     data5.qrc \
-    data6.qrc
+    data6.qrc \
+    data7.qrc \
+    data8.qrc \
+    data9.qrc
 
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/opengl/cube

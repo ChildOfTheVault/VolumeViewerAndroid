@@ -25,6 +25,10 @@
 
 typedef uint8_t BYTE;
 
+#define WIDTH 512
+#define HEIGHT 512
+#define DEPTH 128
+
 class GeometryEngine;
 
 class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -52,6 +56,7 @@ protected:
     void load(int width, int height, int depth, QRgb *data);
     void bind();
     void unbind();
+    void moveCurrSlice(bool direction, int numSlices=5);
 
 signals:
     void clicked();
@@ -78,6 +83,7 @@ private:
     int yRot;
     int zRot;
     float passIt;
+    float passLock;
     float toggleFOV;
     float toggleSettings;
     QWidget *loadfile;
@@ -85,7 +91,12 @@ private:
     int test;
     float scale;
     qreal totalScaleFactor;
-    BYTE* m_acTexVol;
+    BYTE** m_acTexVol;
+    int zoom_toggle;
+    float scale_layer;
+    int only_build_once;
+    QImage *the_layers;
+    int thelayer;
 };
 
 

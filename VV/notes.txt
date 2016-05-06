@@ -1,0 +1,48 @@
+NOTES
+
+-- dat file notes
+format is two hex numbers as values, two zeroed out hex numbers, back and forth until done
+i.e.  20 00 A2 00 FF 00
+
+so its 4 bytes of values, then 4 bytes not, then 4 bytes values, etc.
+
+-- gltextimage3d call conversion
+DESKTOP:
+
+glTexImage3D(GL_TEXTURE_3D, 0, 4, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+void glTexImage3D(	GLenum target,
+ 	GLint level,
+ 	GLint internalFormat,
+ 	GLsizei width,
+ 	GLsizei height,
+ 	GLsizei depth,
+ 	GLint border,
+ 	GLenum format,
+ 	GLenum type,
+ 	const GLvoid * data);
+
+	0 : level-of-detail -> base image level
+	4 : # of colours -> 4 colours (max)
+	width : width of texture in texels -> 100 wide
+	height : "" for height -> 100 high
+	depth : "" for depth -> 100 deep
+	0 : border -> no border
+	GL_BGRA : format of pixel data (order of the 4 colours -> its blue green red alpha
+	GL_UNSIGNED_BYTE : data type of pixel data -> each texel is 8 bits (unsigned byte)
+	0 : pointer to data -> its a data thing
+	
+
+ANDROID:
+
+void glTexImage3D(	GLenum target,
+ 	GLint level,
+ 	GLint internalFormat,
+ 	GLsizei width,
+ 	GLsizei height,
+ 	GLsizei depth,
+ 	GLint border,
+ 	GLenum format,
+ 	GLenum type,
+ 	const GLvoid * data);
+
+glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 100, 100, 100, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
