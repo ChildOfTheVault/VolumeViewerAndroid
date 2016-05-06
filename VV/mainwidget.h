@@ -56,6 +56,7 @@ protected:
     void load(int width, int height, int depth, QRgb *data);
     void bind();
     void unbind();
+    void moveCurrSlice(bool direction, int numSlices=5);
 
 signals:
     void clicked();

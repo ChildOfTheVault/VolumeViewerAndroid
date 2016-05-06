@@ -64,6 +64,44 @@ void MainWidget::timerEvent(QTimerEvent *)
     }
 }
 
+// direction -> true for up, false for down
+// numSlices -> max # of slices to move up/down, default = 5
+void MainWidget::moveCurrSlice(bool direction, int numSlices){
+    int dirMult = direction ? 1 : -1;
+    int layersWanted = dirMult * numSlices;
+    int layerIfMoved = thelayer + layersWanted;
+    int layersToMove = 0;
+
+    if (toggleFOV == 1.0) {
+        toggleFOV = 0.0;
+    }
+    else {
+        toggleFOV = 1.0;
+    }
+
+    if(layerIfMoved < DEPTH && layerIfMoved >= 0){
+        layersToMove = layersWanted;
+    } else if(layerIfMoved >= DEPTH){
+        layersToMove = (DEPTH - 1) - thelayer;
+    } else if(layerIfMoved < 0){
+        layersToMove = -1 * thelayer;
+    }
+
+    if(layersToMove != 0){
+        thelayer += layersToMove;
+    }
+    if(thelayer >= DEPTH){
+        thelayer = DEPTH - 1;
+    } else if(thelayer < 0){
+        thelayer = 0;
+    }
+
+    initTextures();
+    //scale_layer = 0.15625 + thelayer * 0.0390625;
+    //scale = scale + 0.1;
+    //resizeGL(1920, 1080);
+}
+
 bool MainWidget::event(QEvent *event)
  {
      switch (event->type()) {
@@ -117,30 +155,12 @@ bool MainWidget::event(QEvent *event)
              update();
              }
              else if (x < 220 && (y > 440 && y <= 660)) {
-                 qDebug("Pressed settings");
-                 if (toggleSettings == 1.0) {
-                     loadfile->setVisible(true);
-                     toggleSettings = 0.0;
-                 }
-                 else {
-                     loadfile->setVisible(false);
-                     toggleSettings = 1.0;
-                 }
-             update();
+                 moveCurrSlice(false);
+                 update();
              }
              else if (x < 220 && (y > 660 && y <= 880)) {
-                 if (toggleFOV == 1.0) {
-                     toggleFOV = 0.0;
-                 }
-                 else {
-                     toggleFOV = 1.0;
-                 }
-                 thelayer = thelayer + 5;
-                 scale_layer = scale_layer + 0.0390625;
-                 initTextures();
-                 //scale = scale + 0.1;
-                 //resizeGL(1920, 1080);
-             update();
+                 moveCurrSlice(true);
+                 update();
              }
          }
      }
