@@ -69,9 +69,7 @@ void MainWidget::timerEvent(QTimerEvent *)
 // numSlices -> max # of slices to move up/down, default = 5
 void MainWidget::moveCurrSlice(bool direction, int numSlices){
     int dirMult = direction ? 1 : -1;
-    int layersWanted = dirMult * numSlices;
-    int layerIfMoved = thelayer + layersWanted;
-    int layersToMove = 0;
+    int layersToMove = dirMult * numSlices;
 
     if (toggleFOV == 1.0) {
         toggleFOV = 0.0;
@@ -80,17 +78,8 @@ void MainWidget::moveCurrSlice(bool direction, int numSlices){
         toggleFOV = 1.0;
     }
 
-    if(layerIfMoved < DEPTH && layerIfMoved >= 0){
-        layersToMove = layersWanted;
-    } else if(layerIfMoved >= DEPTH){
-        layersToMove = (DEPTH - 1) - thelayer;
-    } else if(layerIfMoved < 0){
-        layersToMove = -1 * thelayer;
-    }
+    thelayer += layersToMove;
 
-    if(layersToMove != 0){
-        thelayer += layersToMove;
-    }
     if(thelayer >= DEPTH){
         thelayer = DEPTH - 1;
     } else if(thelayer < 0){
