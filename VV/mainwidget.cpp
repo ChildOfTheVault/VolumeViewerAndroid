@@ -22,7 +22,8 @@ MainWidget::MainWidget(QWidget *parent) :
     thelayer(20),
     scale(1.0),
     scale_layer(0.15625),
-    only_build_once(0)
+    only_build_once(0),
+    layer_image()
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -301,8 +302,9 @@ void MainWidget::initTextures()
                 //the_layers[o] = QOpenGLTexture(q1);
             //}
         }
-        QImage layer1 = QImage((uchar*)m_acTexVol[thelayer], WIDTH, HEIGHT, QImage::Format_Grayscale8);
-        texture = new QOpenGLTexture(layer1);
+        layer_image = QImage((uchar*)m_acTexVol[thelayer], WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        delete texture;
+        texture = new QOpenGLTexture(layer_image);
         //texture = new QOpenGLTexture(the_layers[thelayer]);
     }
 

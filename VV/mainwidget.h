@@ -69,7 +69,7 @@ private:
     QOpenGLShaderProgram program;
     GeometryEngine *geometries;
     QOpenGLTexture *texture;
-    GLuint m_texture;
+    GLuint m_textures[DEPTH];
     QMatrix4x4 projection;
     QVector2D mousePressPosition;
     QVector3D rotationAxis;
@@ -95,7 +95,8 @@ private:
     int zoom_toggle;
     float scale_layer;
     int only_build_once;
-    QImage *the_layers;
+    //QImage *the_layers;
+    QImage layer_image;
     int thelayer;
 };
 
