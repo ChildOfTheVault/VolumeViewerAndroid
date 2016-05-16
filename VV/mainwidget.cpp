@@ -1,5 +1,6 @@
 #include "mainwidget.h"
 #include "mainsettings.h"
+#include "math.h"
 #include <sstream>
 
 
@@ -9,6 +10,7 @@ typedef uint8_t BYTE;
 //#define DEPTH 128
 #define BYTES_PER_TEXEL 1
 #define LAYER(r) (WIDTH * HEIGHT * r * BYTES_PER_TEXEL)
+#define TEXEL2_MAX(s, t)	(BYTES_PER_TEXEL * (s * MAX_LEN + t))			// 2->1 dimension mapping function
 #define TEXEL2(s, t)	(BYTES_PER_TEXEL * (s * WIDTH + t))			// 2->1 dimension mapping function
 #define TEXEL3(s, t, r) (TEXEL2(s, t) + LAYER(r))					// 3->1 dimension mapping function
 
@@ -23,7 +25,8 @@ MainWidget::MainWidget(QWidget *parent) :
     scale(1.0),
     scale_layer(0.15625),
     only_build_once(0),
-    layer_image()
+    layer_image(),
+    flatLayerData{0}
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -47,6 +50,7 @@ void MainWidget::rotateBy(int xAngle, int yAngle, int zAngle)
     update();
 }
 
+/*
 void MainWidget::timerEvent(QTimerEvent *)
 {
     // Decrease angular speed (friction)
@@ -63,6 +67,101 @@ void MainWidget::timerEvent(QTimerEvent *)
         // Request an update
         update();
     }
+}
+*/
+
+
+//The 'fake' origin is the origin for all rotation
+//its actually the center of the cube
+//this is the fake origin to *write* to
+//in "write space"
+const QVector2D FAKE_ORIGIN = QVector2D(MAX_HALFWAY, MAX_HALFWAY);
+//this is the fake origin to read from (the volume data), in data space
+const QVector3D DATA_FAKE_ORIGIN = QVector3D(HALFWAY(WIDTH), HALFWAY(HEIGHT), HALFWAY(DEPTH));
+//this is our write origin, in write space
+const QVector3D ORIGIN = QVector3D(0, 0, 0);
+//this is our read origin, in data space
+const QVector3D DATA_ORIGIN = QVector3D(0, 0, 0);
+BYTE layerData[MAX_LEN][MAX_LEN] = {0};
+
+uchar* MainWidget::calcCurrSlice(QQuaternion rotQuat){
+    //volumeData is a "3D" array, with the setup depth, width, height
+    //the write vector, used to choose which voxel is being written to
+    QVector2D writeVect;
+    //write vect, but in fake coords (from center, not from corner)
+    //to center data
+    QVector2D writeFakeVect;
+    //read vect, in fake coords
+    //to center rotation
+    QVector3D readFakeVect;
+    //rotated data vect
+    //around center
+    QVector3D readFakeTransformedVect;
+    //rotated vect
+    //but useable for reading from volume data
+    QVector3D readTransformedVect;
+    //read voxel
+    BYTE voxel;
+
+
+    //THE ALGORITHM
+    //loop through every voxel in layerData
+    //get fake write coordinates (to center the data!)
+    //these fake write coords kinda correspond to read fake coords
+    //now, rotate fake data coords (to rotate around the center!)
+    //if the new vect is in bounds of data, get data, else = 0
+    //the value at fake write coords is this value
+    for(int i = 0; i < MAX_LEN; i++){
+        for(int j = 0; j < MAX_LEN; j++){
+            writeVect = QVector2D(i, j);
+            //to write fake coords
+            writeFakeVect = FAKE_ORIGIN - writeVect;
+            //writeFakeVect.setX(FAKE_ORIGIN.x() + (-i));
+            //writeFakeVect.setY(FAKE_ORIGIN.y() + (-j));
+
+            //to read fake coords
+            //by default, it reads the middle layer
+            readFakeVect = QVector3D(writeFakeVect.x(), writeFakeVect.y(),0/*thelayer - DATA_FAKE_ORIGIN.z()*//*DATA_FAKE_ORIGIN.z()*/);
+            //readFakeVect.setX(DATA_FAKE_ORIGIN.x() + (-i));
+            //readFakeVect.setY(DATA_FAKE_ORIGIN.y() + (-j));
+            //readFakeVect.setZ(DATA_FAKE_ORIGIN.z());
+
+            //get read transformed fake coords
+            readFakeTransformedVect = rotQuat.rotatedVector(readFakeVect);
+
+            //add fake read origin to get real read coordinates
+            readTransformedVect = DATA_FAKE_ORIGIN + readFakeTransformedVect;
+
+            //check if its within volume bounds
+            if((int)readTransformedVect.z() < 0 || (int)readTransformedVect.z() > DEPTH - 1){
+                voxel = 127;
+            } else if((int)readTransformedVect.x() < 0 || (int)readTransformedVect.x() > WIDTH - 1
+                    || (int)readTransformedVect.y() < 0 || (int)readTransformedVect.y() > HEIGHT - 1){
+                //out of bounds, its black = 0
+                voxel = 255;
+            } else {
+                //its a weird format
+                voxel = volumeData[(int)readTransformedVect.z()][(int)readTransformedVect.x()][(int)readTransformedVect.y()];
+            }
+
+            if(thelayer == 0){
+                voxel = voxel * 1;
+            }
+
+            //write to it! unfortunately we need to keep the same format
+            layerData[(int)writeVect.x()][(int)writeVect.y()] = (BYTE)voxel;
+        }
+    }
+
+
+    for(unsigned int i = 0; i < MAX_LEN/*WIDTH*/; i++){
+        for(unsigned int j = 0; j < MAX_LEN/*HEIGHT*/; j++){
+            flatLayerData[TEXEL2_MAX(i, j)] = layerData[i][j];//volumeData[thelayer][i][j];
+        }
+    }
+
+
+    return (uchar*)flatLayerData;
 }
 
 // direction -> true for up, false for down
@@ -159,8 +258,8 @@ bool MainWidget::event(QEvent *event)
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
          if (touchPoints.count() == 1) {
-            if (passLock != 1.0) {
-                const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+            const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+            if (passLock != 1.0 && touch1.pos().x() > 220) {
                 qreal x = touch1.pos().x();
                 qreal y = touch1.pos().y();
                 int dx = x - lastPos2.x();
@@ -291,7 +390,9 @@ void MainWidget::initTextures()
                 //the_layers[o] = QOpenGLTexture(q1);
             //}
         }
-        layer_image = QImage((uchar*)m_acTexVol[thelayer], WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        //layer_image = QImage(calcCurrSlice(/*rotation*/), WIDTH, HEIGHT, QImage::Format_Grayscale8);
+        //layer_image = QImage(calcCurrSlice(/*rotation*/), MAX_LEN, MAX_LEN, QImage::Format_Grayscale8);
+        layer_image = QImage(calcCurrSlice(rotation), MAX_LEN, MAX_LEN, QImage::Format_Grayscale8);
         delete texture;
         texture = new QOpenGLTexture(layer_image);
         //texture = new QOpenGLTexture(the_layers[thelayer]);
@@ -335,10 +436,13 @@ void MainWidget::paintGL()
 
     // Calculate model view transformation
     QMatrix4x4 matrix;
+    QMatrix4x4 rotMatrix;
     matrix.translate(0.0, 0.0, -5.0);
-    matrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
-    matrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
-    matrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
+    rotMatrix.translate(0.0, 0.0, -5.0);
+    rotMatrix.rotate(xRot / 25.0f, 1.0f, 0.0f, 0.0f); //Was 10.0f
+    rotMatrix.rotate(yRot / 25.0f, 0.0f, 1.0f, 0.0f);
+    rotMatrix.rotate(zRot / 25.0f, 0.0f, 0.0f, 1.0f);
+    rotation = QQuaternion::fromRotationMatrix(rotMatrix.normalMatrix());
     double temp_s = scale*scale_layer;
     //printf("scale: %lf \t", temp_s);
     //qDebug("scale: %lf \t", temp_s);
@@ -390,73 +494,27 @@ void MainWidget::paintGL()
     }
 }
 
-//BELOW IS SOME CODE THAT COULD BE VERY USEFUL TO OUR 3D TEXTURE STUFF
-//============================================================================//
-//                                 GLTexture3D                                //
-//============================================================================//
-/*
-void MainWidget::GLTexture3D(int width, int height, int depth)
-{
-    //GLBUFFERS_ASSERT_OPENGL("MainWidget::GLTexture3D", glTexImage3D, return);
-    //glTexImage3D
-    //glBindTexture(m_texture);
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-
-    GLuint test_tex[1];
-    glGenTextures(1, test_tex);
-    glBindTexture(GL_TEXTURE_3D_OES, test_tex[0]);
-    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, 4, width, height, depth, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_R_OES, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
-    glBindTexture(GL_TEXTURE_3D_OES, 0);
-}
-
-void MainWidget::load(int width, int height, int depth, QRgb *data)
-{
-    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
-    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
-    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, 4, width, height, depth, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glBindTexture(GL_TEXTURE_3D_OES, 0);
-}
-
-void MainWidget::bind()
-{
-    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
-    glEnable(GL_TEXTURE_3D_OES);
-}
-
-void MainWidget::unbind()
-{
-    glBindTexture(GL_TEXTURE_3D_OES, 0);
-    glDisable(GL_TEXTURE_3D_OES);
-}
-*/
 void MainWidget::BuildTexture()
 {
     //QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     //											depth is 1 for first layer
-    int cols = WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL;
-    unsigned int rows = DEPTH;
-    //for (int i = 0; i < DEPTH; i++) {
-    //    m_acTexVol[i] = (BYTE *)malloc(WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL);
-    //}
-    m_acTexVol = (BYTE **) calloc(rows, sizeof(BYTE *));
-    for(unsigned int i = 0; i < rows; i++)
-        m_acTexVol[i] = (BYTE *) calloc(cols, sizeof(BYTE));
-    if (m_acTexVol == NULL)
+    //int cols = WIDTH * HEIGHT * 1 * BYTES_PER_TEXEL;
+    unsigned int lays = DEPTH;
+    unsigned int cols = WIDTH;
+    unsigned int rows = HEIGHT;
+
+    volumeData = (BYTE ***) calloc(lays, sizeof(BYTE **));
+    for(unsigned int i = 0; i < lays; i++){
+        volumeData[i] = (BYTE **) calloc(cols, sizeof(BYTE *));
+        for(unsigned int j = 0; j < cols; j++){
+            volumeData[i][j] = (BYTE *) calloc(rows, sizeof(BYTE));
+        }
+    }
+    if (volumeData == NULL)
         printf("NULL!");
     short int r, s, t;
 
 
-    //short int aiTemp[WIDTH * HEIGHT * DEPTH * BYTES_PER_TEXEL];
     QByteArray blob;
     for (int i=1; i <= 64; i++) {
         std::ostringstream temp;
@@ -479,58 +537,21 @@ void MainWidget::BuildTexture()
     // layer 0 occupies the first (width * height * bytes per texel) bytes, followed by layer 1, etc...
 
     int iIndex = 0;
-    //double dZeroIntensity = m_iWindowCenter - m_iWindowWidth/2.0;
     double dColorRange = 255.0;
     double dScaledIntensity = 0.0;
     for (r = 0; r < DEPTH; r++) {
         for (s = WIDTH-1; s >= 0; s--) {
-        //for (s = 0; s < WIDTH; s++) {
             for (t = 0; t < HEIGHT; t++, iIndex+=2) {
-                //get last layer
-                //if(r < thelayer){
-                //    continue;
-                //}
-            //for (t = HEIGHT-1; t >= 0; t--, iIndex++) {
-                //if (m_iWindowWidth <= 0)
                 dScaledIntensity = (double)blob[iIndex];//(double)aiTemp[iIndex];
-                //else
-                 //   dScaledIntensity = ( ( ((double)aiTemp[iIndex]) - dZeroIntensity) / m_iWindowWidth)*dColorRange;
                 if (dScaledIntensity < 0.0)
                     dScaledIntensity = 0.0;
                 else if (dScaledIntensity > dColorRange)
                     dScaledIntensity = dColorRange;
                 //use 0 instead of r for just one layer
-                m_acTexVol[r][TEXEL3(s, t, 0)] = (BYTE)dScaledIntensity;
+                volumeData[r][s][t] = (BYTE)dScaledIntensity;
             }
         }
-        //depth of 1 for first layer
-        //if(r == thelayer){
-        //    break;
-        //}
     }
-
-    // request 1 texture name from OpenGL
-/*
-    //m_agluiTexName.add(1);
-    glGenTextures(1, &m_texture);
-    // tell OpenGL we're going to be setting up the texture name it gave us
-    glBindTexture(GL_TEXTURE_3D_OES, m_texture);
-    // when this texture needs to be shrunk to fit on small polygons, use linear interpolation of the texels to determine the color
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    // when this texture needs to be magnified to fit on a big polygon, use linear interpolation of the texels to determine the color
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // we do not want the texture to repeat over the S axis, so if we specify coordinates out of range we will not get textured.
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    // same as above for T axis
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // same as above for R axis
-    glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_R_OES, GL_CLAMP_TO_EDGE);
-    // this is a 3d texture, level 0 (max detail), GL should store it in RGB8 format, its WIDTHxHEIGHTxDEPTH in size,
-    // it doesnt have a border, we're giving it to GL in RGB format as a series of unsigned bytes, and texels is where the texel data is.
-    //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_RGB8, WIDTH, HEIGHT, DEPTH, 0, GL_RGB, GL_UNSIGNED_BYTE, texels);
-    //glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_INTENSITY, WIDTH, HEIGHT, DEPTH, 0, GL_RED, GL_UNSIGNED_BYTE, m_acTexVol);
-    f->glTexImage3D(GL_TEXTURE_3D_OES, 0, GL_R8_EXT, WIDTH, HEIGHT, DEPTH, 0, GL_RED_EXT, GL_UNSIGNED_BYTE, m_acTexVol);
-    */
 }
 
 
