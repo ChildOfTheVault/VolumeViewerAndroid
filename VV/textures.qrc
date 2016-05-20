@@ -9,5 +9,6 @@
         <file>settings.png</file>
         <file>android/res/drawable-ldpi/logo.png</file>
         <file>home.png</file>
+        <file>contour2.png</file>
     </qresource>
 </RCC>

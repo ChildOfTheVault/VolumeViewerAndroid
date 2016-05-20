@@ -3,6 +3,9 @@
 #define MAINWIDGET_H
 
 #include "geometryengine.h"
+#include "paintwidget.h"
+
+#include <qpainter.h>
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
@@ -11,6 +14,7 @@
 #include <QQuaternion>
 #include <QVector2D>
 #include <QVector3D>
+#include <QLabel>
 #include <QBasicTimer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
@@ -22,6 +26,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+
 
 typedef uint8_t BYTE;
 
@@ -57,6 +62,7 @@ protected:
     void bind();
     void unbind();
     void moveCurrSlice(bool direction, int numSlices=5);
+    //void paintEvent(QPaintEvent *event);
 
 signals:
     void clicked();
@@ -87,16 +93,25 @@ private:
     float toggleFOV;
     float toggleSettings;
     QWidget *loadfile;
+    PaintWidget *paint;
     QWidget *splash;
+    QWidget *frame4;
     int test;
     float scale;
     qreal totalScaleFactor;
     BYTE** m_acTexVol;
     int zoom_toggle;
+    int mode_checker;
     float scale_layer;
     int only_build_once;
     //QImage *the_layers;
     QImage layer_image;
+    int paint_mode;
+    int paint_init;
+    int toggle_load;
+    qreal tempx;
+    qreal tempy;
+    //QPainter paint;
     int thelayer;
 };
 

@@ -4,6 +4,7 @@
 
 
 typedef uint8_t BYTE;
+//PaintWidget w;
 //#define WIDTH 512
 //#define HEIGHT 512
 //#define DEPTH 128
@@ -23,7 +24,13 @@ MainWidget::MainWidget(QWidget *parent) :
     scale(1.0),
     scale_layer(0.15625),
     only_build_once(0),
-    layer_image()
+    layer_image(),
+    paint_mode(0),
+    paint_init(0),
+    mode_checker(0),
+    toggle_load(0),
+    tempx(1380),
+    tempy(540)
     //toggleSettings(0),
     //toggleFOV(0)
 {
@@ -67,6 +74,7 @@ void MainWidget::timerEvent(QTimerEvent *)
 
 // direction -> true for up, false for down
 // numSlices -> max # of slices to move up/down, default = 5
+/*
 void MainWidget::moveCurrSlice(bool direction, int numSlices){
     int dirMult = direction ? 1 : -1;
     int layersToMove = dirMult * numSlices;
@@ -91,6 +99,7 @@ void MainWidget::moveCurrSlice(bool direction, int numSlices){
     //scale = scale + 0.1;
     //resizeGL(1920, 1080);
 }
+*/
 
 bool MainWidget::event(QEvent *event)
  {
@@ -104,6 +113,10 @@ bool MainWidget::event(QEvent *event)
              const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
              qreal x = touch1.pos().x();
              qreal y = touch1.pos().y();
+             /*if (paint_mode && x > 420 && x < 1500) {
+                paint->x1 = (int)x-420;
+                paint->y1 = (int)y;
+             }*/
              lastPos2 = touch1.lastPos();
              if (x < 220 && y <= 220 ) {
                  //qDebug("%d\n",testAttribute(Qt::WA_AcceptTouchEvents));
@@ -113,15 +126,20 @@ bool MainWidget::event(QEvent *event)
                  zRot = 0;
                  passIt = 0.0;
                  passLock = 1.0;
-                 scale = 1.5;
+                 scale = 1.75;
                  zoom_toggle = 0;
                  update();
              }
              else if (x < 220 && (y > 220 && y <= 440)) {
-                 if (passIt == 0.0) {
+                 if (passIt == 0.0 && mode_checker == 0) {
                      passIt = 1.0;
                      scale = 1;
                      passLock = 0.0;
+                     if (paint_init) {
+                         paint->setVisible(false);
+                         paint_mode = 0;
+                         paint->nlines = 0;
+                     }
                  }
                  else {
                      passIt = 0.0;
@@ -130,11 +148,21 @@ bool MainWidget::event(QEvent *event)
                         passLock = 0.0;
                         scale = 1;
                         zoom_toggle = 1;
+                        mode_checker = 1;
+                        if (paint_init) {
+                            paint->setVisible(false);
+                            paint_mode = 0;
+                            paint->nlines = 0;
+                        }
                      }
                      else {
+                        xRot = 0;
+                        yRot = 24;
+                        zRot = 0;
                         passLock = 1.0;
-                        scale = 1.5;
+                        scale = 1.75;
                         zoom_toggle = 0;
+                        mode_checker = 0;
                      }
                  }
                  /*else {
@@ -145,11 +173,42 @@ bool MainWidget::event(QEvent *event)
              update();
              }
              else if (x < 220 && (y > 440 && y <= 660)) {
-                 moveCurrSlice(false);
+                 //moveCurrSlice(false);
+                 if (loadfile->isVisible() == true)
+                     loadfile->setVisible(false);
+                 else
+                     loadfile->setVisible(true);
+                 /*qDebug("load: %d", toggle_load);
+                 if (!toggle_load) {
+                     loadfile->setVisible(false);
+                     toggle_load = 0;
+                 }
+                 else {
+                     loadfile->setVisible(true);
+                     toggle_load = 1;
+                 }*/
                  update();
              }
              else if (x < 220 && (y > 660 && y <= 880)) {
-                 moveCurrSlice(true);
+                 //moveCurrSlice(true);
+                 if (paint_mode == 0) {
+                     if  (paint_init == 0) {
+                         paint = new PaintWidget();
+                         paint->setGeometry(420, 0, 1500, 1080);
+                         paint_init = 1;
+                         paint->setParent(this);
+                         paint->show();
+                     }
+                     paint_mode = 1;
+                     paint->setVisible(true);
+
+                 }
+                 else {
+                     paint->setVisible(false);
+                     paint_mode = 0;
+                     paint->nlines = 0;
+                     //paint_mode = 0;
+                 }
                  update();
              }
          }
@@ -159,8 +218,29 @@ bool MainWidget::event(QEvent *event)
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
          if (touchPoints.count() == 1) {
+             const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+             //qreal x1 = touch1.startPos().x();
+             //qreal y1 = touch1.startPos().y();
+             qreal x1 = tempx;
+             qreal y1 = tempy;
+             qreal x2 = touch1.pos().x();
+             qreal y2 = touch1.pos().y();
+             if (abs(x2-x1) > 75 || abs(y2-y1) > 75 ) {
+                 x1 = x2;
+                 y1 = y2;
+             }
+             if (paint_mode  && x1 < 1460 && x1 > 500 && y1 < 1020 && y1 > 60 &&
+                     passLock == 1.0 && paint->nlines < 1000) {
+                paint->x1 = (int)x1-420;
+                paint->y1 = (int)y1;
+                paint->x2 = (int)x2-420;
+                paint->y2 = (int)y2;
+                paint->update();
+                tempx = x2;
+                tempy = y2;
+                 //paint->show();
+             }
             if (passLock != 1.0) {
-                const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
                 qreal x = touch1.pos().x();
                 qreal y = touch1.pos().y();
                 int dx = x - lastPos2.x();
@@ -178,6 +258,8 @@ bool MainWidget::event(QEvent *event)
                      / QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
              //if (touchEvent->touchPointStates() & Qt::TouchPointReleased) {
              if ((lastPos2 != touchPoint0.pos() && lastPos3 != touchPoint1.pos())) {
+
+                 if (!paint_mode) {
                  // if one of the fingers is released, remember the current scale
                  // factor so that adding another finger later will continue zooming
                  // by adding new scale factor to the existing remembered value.
@@ -207,6 +289,7 @@ bool MainWidget::event(QEvent *event)
                  currentScaleFactor = 1;
                  lastPos2 = touchPoint0.pos();
                  lastPos3 = touchPoint1.pos();
+                 }
              }
              //setTransform(QTransform().scale(totalScaleFactor * currentScaleFactor,
                                              //totalScaleFactor * currentScaleFactor));
@@ -214,8 +297,18 @@ bool MainWidget::event(QEvent *event)
      }
      case QEvent::TouchEnd:
      {
+
          QTouchEvent *touchEvent = static_cast<QTouchEvent *>(event);
          QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+         const QTouchEvent::TouchPoint &touch1 = touchPoints.first();
+         //qreal x = touch1.pos().x();
+         //qreal y = touch1.pos().y();
+         /*if (paint_mode  && x > 420 && x < 1500) {
+            paint->x2 = (int)x-420;
+            paint->y2 = (int)y;
+            paint->update();
+             //paint->show();
+         }*/
          return true;
      }
      default:
@@ -342,7 +435,12 @@ void MainWidget::paintGL()
     double temp_s = scale*scale_layer;
     //printf("scale: %lf \t", temp_s);
     //qDebug("scale: %lf \t", temp_s);
-    matrix.scale(scale,scale,temp_s);
+    if (passIt == 1.0) {
+        matrix.scale(scale,scale,scale);
+    }
+    else {
+        matrix.scale(scale,scale,temp_s);
+    }
     //matrix.rotate(rotation);
 
     // Set modelview-projection matrix
@@ -373,7 +471,7 @@ void MainWidget::paintGL()
     frame3->setGeometry(20, 440, 200, 200);
     frame3->setStyleSheet("background-image: url(:/settings.png)");
 
-    QWidget *frame4 = new QWidget(this);
+    frame4 = new QWidget(this);
     frame4->setGeometry(20, 660, 200, 200);
     frame4->setStyleSheet("background-image: url(:/contour.png)");
 
@@ -387,6 +485,12 @@ void MainWidget::paintGL()
       splash->setStyleSheet("background-image: url(:/android/res/drawable-ldpi/logo.png)");
 
       test = 1;
+    }
+    if (paint_mode) {
+        frame4->setStyleSheet("background-image: url(:/contour2.png)");
+    }
+    else {
+        frame4->setStyleSheet("background-image: url(:/contour.png)");
     }
 }
 

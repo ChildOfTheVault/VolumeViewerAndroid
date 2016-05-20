@@ -4,7 +4,8 @@ TARGET = VolumeViewer2
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    mainsettings.cpp
+    mainsettings.cpp \
+    paintwidget.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -13,7 +14,8 @@ SOURCES += \
 HEADERS += \
     mainwidget.h \
     geometryengine.h \
-    mainsettings.h
+    mainsettings.h \
+    paintwidget.h
 
 RESOURCES += \
     shaders.qrc \
